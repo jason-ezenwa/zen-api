@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import config from '../../config';
+import config from '../../../config';
 
 interface UserPayload {
   id: string;
@@ -26,3 +26,7 @@ export const generateToken = (user: UserPayload) => {
 export const verifyToken = (token: string) => {
   return jwt.verify(token, config.jwtSecret);
 };
+
+export const decodeToken = (token: string) => {
+  return jwt.decode(token);
+}
