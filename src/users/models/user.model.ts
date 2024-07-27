@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
   this.password = await bcrypt.hash(this.password, salt);
   next();
 })
+
 class User {
   @prop({ required: true })
   public firstName!: string;

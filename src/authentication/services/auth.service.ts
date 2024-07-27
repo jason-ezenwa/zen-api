@@ -29,7 +29,7 @@ class AuthService {
       throw new Error('User already exists');
     }
     const user = new UserModel(input);
-    await user.save();
+    await UserModel.create(user);
     const token = generateToken(
       {
         id: user.id,
@@ -52,7 +52,13 @@ class AuthService {
     if (!isMatch) {
       throw new Error('Invalid credentials');
     }
-    const token = generateToken(user.id);
+    const token = generateToken({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        dateOfBirth: user.dateOfBirth,
+      });
     return { user, token };
   }
 }
