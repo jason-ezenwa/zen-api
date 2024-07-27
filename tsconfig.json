@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
+    "target": "es2017",
+    "module": "CommonJS",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -10,6 +10,6 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
   },
-  "include": ["src/**/*.ts", "errors.ts"],
+  "include": ["src/**/*.ts", "errors.ts", "src/app/margins/models/currency-exchange-margin"],
   "exclude": ["node_modules"]
 }
