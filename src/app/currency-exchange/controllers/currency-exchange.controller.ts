@@ -8,17 +8,17 @@ class CurrencyExchangeController {
     const { sourceCurrency, targetCurrency, amount } = req.body;
 
     if (!sourceCurrency) {
-      res.status(400).json({ error: 'sourceCurrency is required.' });
+      return res.status(400).json({ error: 'sourceCurrency is required.' });
       return;
     }
 
     if (!targetCurrency) {
-      res.status(400).json({ error: 'targetCurrency is required.' });
+      return res.status(400).json({ error: 'targetCurrency is required.' });
       return;
     }
 
     if (!amount || isNaN(amount) || amount <= 0) {
-      res.status(400).json({ error: 'Valid amount is required.' });
+      return res.status(400).json({ error: 'Valid amount is required.' });
       return;
     }
 
@@ -60,19 +60,28 @@ class CurrencyExchangeController {
 
       const { quoteReference } = req.body;
 
-      await currencyExchangeService.exchangeCurrency(userId, quoteReference);
+      const exchanged = await currencyExchangeService.exchangeCurrency(userId, quoteReference);
+
+      if (exchanged) {
+        return res.status(200).json({ message: 'Currency exchanged successfully' });
+      } else {
+        throw new Error('Unable to process currency exchange, please try again later.');
+      }
+
     } catch (error) {
       if (error instanceof NotFoundError) {
-        res.status(404).json({ error: error.message });
+        return res.status(404).json({ error: error.message });
       }
 
       if (error instanceof BadRequestError) {
-        res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: error.message });
       }
 
-      res.status(500).json({ error: 'Internal Server Error' });
+      console.log('Error exchanging currency:', error);
+
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
 }
 
-export default CurrencyExchangeController;
+export default new CurrencyExchangeController();

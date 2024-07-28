@@ -8,6 +8,8 @@ interface RegisterInput {
   dateOfBirth: Date;
   email: string;
   password: string;
+  bvn: string;
+  phoneNumber: string;
   address: {
     street: string;
     city: string;
@@ -45,6 +47,7 @@ class AuthService {
         lastName: user.lastName,
         email: user.email,
         dateOfBirth: user.dateOfBirth,
+        phoneNumber: user.phoneNumber,
       }
     );
     return { user, token };
@@ -71,6 +74,7 @@ class AuthService {
       lastName: user.lastName,
       email: user.email,
       dateOfBirth: user.dateOfBirth,
+      phoneNumber: user.phoneNumber,
     });
       
     return { user, token };

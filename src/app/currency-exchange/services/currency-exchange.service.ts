@@ -1,8 +1,9 @@
 import axios from 'axios';
-import CurrencyExchangeMarginModel from '../../margins/models/currency-exchange-margin'; // Adjust the path if necessary
+import MarginModel from '../../margins/models/currency-exchange-margin'; // Adjust the path if necessary
 import { NotFoundError } from '../../errors';
 import redisClient from '../../redisClient';
 import WalletModel from '../../wallets/models/wallet.model';
+import UserModel from '../../users/models/user.model';
 
 interface FXQuoteResponse {
   sourceAmount: number;
@@ -26,7 +27,7 @@ interface MapleradQuoteData {
 class CurrencyExchangeService {
   public async getCurrencyExchangeMarginFromDb(): Promise<any> {
     try {
-      const currencyExchangeMargin = await CurrencyExchangeMarginModel.findOne();
+      const currencyExchangeMargin = await MarginModel.findOne();
       return currencyExchangeMargin;
     } catch (error) {
       throw error;
@@ -58,8 +59,8 @@ class CurrencyExchangeService {
 
       // inputting our margin
       const exchangeRateMargin = await this.getCurrencyExchangeMarginFromDb();
-      const { marginInPercentage } = exchangeRateMargin;
-      const ratePercentageAmount = parseFloat(marginInPercentage) * parseFloat(quoteData.rate);
+      const { margin } = exchangeRateMargin;
+      const ratePercentageAmount = parseFloat(margin) * parseFloat(quoteData.rate);
 
       const exchangeRate = parseFloat(quoteData.rate) - ratePercentageAmount; // remove margin % of the exchange rate
       const targetAmount = amount * exchangeRate;
@@ -119,14 +120,20 @@ class CurrencyExchangeService {
 
       const { sourceAmount, targetAmount, sourceCurrency, targetCurrency } = parsedFxQuote;
 
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        throw new NotFoundError('User not found');
+      }
+
       const sourceCurrencyWallet = await WalletModel.findOne({
         currency: sourceCurrency,
-        user: userId,
+        user: user._id,
       });
 
       const targetCurrencyWallet = await WalletModel.findOne({
         currency: targetCurrency,
-        user: userId,
+        user: user._id,
       });
 
       if (!sourceCurrencyWallet) {
@@ -154,7 +161,7 @@ class CurrencyExchangeService {
       
       await redis.del(fxQuoteKey); // quote is no longer valid
 
-      return { message: 'Currency exchange successful' };
+      return true;
     } catch (error) {
       await redis.del(fxQuoteKey); // quote is no longer valid
       throw error;

@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import CurrencyExchangeController from '../controllers/currency-exchange.controller';
+import { authenticate } from '../../authentication/middlewares/auth.middleware';
 
 const router = Router();
-const currencyExchangeController = new CurrencyExchangeController();
 
-router.post('/generate-quote', (req, res) => currencyExchangeController.generateFXQuote(req, res));
-router.post('/exchange-currency', (req, res) => currencyExchangeController.exchangeCurrency(req, res));
+router.post('/generate-quote', CurrencyExchangeController.generateFXQuote);
+router.post('/exchange-currency', authenticate, CurrencyExchangeController.exchangeCurrency);
 
 export default router;

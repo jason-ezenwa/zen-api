@@ -11,17 +11,17 @@ class WalletController {
 
       const wallet = await WalletService.createWallet(userId, currency);
       
-      res.status(201).json(wallet);
+      return res.status(201).json(wallet);
     } catch (error) {
       if (error instanceof BadRequestError) {
-        res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: error.message });
       }
       
       if (error instanceof NotFoundError) {
-        res.status(404).json({ error: error.message });
+        return res.status(404).json({ error: error.message });
       }
 
-      res.status(500).json({ error });
+      return res.status(500).json({ error });
     }
   }
 
@@ -31,17 +31,17 @@ class WalletController {
 
       const wallet = await WalletService.getWalletsByUserId(userId);
 
-      res.status(200).json(wallet);
+      return res.status(200).json(wallet);
     } catch (error) {
       if (error instanceof BadRequestError) {
-        res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: error.message });
       }
 
       if (error instanceof NotFoundError) {
-        res.status(404).json({ error: error.message });
+        return res.status(404).json({ error: error.message });
       }
 
-      res.status(500).json({ error });
+      return res.status(500).json({ error });
     }
   }
 
@@ -51,17 +51,17 @@ class WalletController {
 
       const wallet = await WalletService.getWalletByWalletId(walletId);
 
-      res.status(200).json(wallet);
+      return res.status(200).json(wallet);
     } catch (error) {
       if (error instanceof BadRequestError) {
-        res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: error.message });
       }
 
       if (error instanceof NotFoundError) {
-        res.status(404).json({ error: error.message });
+        return res.status(404).json({ error: error.message });
       }
 
-      res.status(500).json({ error });
+      return res.status(500).json({ error });
     }
   }
 }

@@ -7,6 +7,7 @@ interface UserPayload {
   lastName: string;
   email: string;
   dateOfBirth: Date;
+  phoneNumber: string;
 }
 
 export const generateToken = (user: UserPayload) => {
@@ -17,6 +18,7 @@ export const generateToken = (user: UserPayload) => {
       lastName: user.lastName,
       email: user.email,
       dateOfBirth: user.dateOfBirth,
+      phoneNumber: user.phoneNumber,
     },
     config.jwtSecret,
     { expiresIn: '1h' }

@@ -23,8 +23,14 @@ export class User {
   @prop({ required: true })
   public password!: string;
 
-  @prop()
-  public address?: {
+  @prop({ required: true })
+  public phoneNumber!: string;
+
+  @prop({ required: true })
+  public bvn!: string;
+
+  @prop({ required: true })
+  public address!: {
     street: string;
     city: string;
     state: string;

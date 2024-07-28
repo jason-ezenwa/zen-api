@@ -1,12 +1,25 @@
 import WalletModel from '../models/wallet.model'; // Adjust the path if necessary
 import UserModel  from '../../users/models/user.model'; // Adjust the path if necessary
-import { NotFoundError } from '../../errors';
+import { BadRequestError, NotFoundError } from '../../errors';
+import { ObjectId } from 'mongodb';
 
 class WalletService {
   async createWallet(userId: string, currency: string) {
     const user = await UserModel.findById(userId);
     if (!user) {
       throw new NotFoundError('User not found');
+    }
+
+    const allowedCurrencies = ['USD', 'NGN', 'GHS', 'KES'];
+
+    const existingCurrencyWallet = await WalletModel.findOne({ user: user._id, currency });
+
+    if (existingCurrencyWallet) {
+      throw new BadRequestError('Wallet already exists for specified currency');
+    }
+
+    if (!allowedCurrencies.includes(currency)) {
+      throw new BadRequestError('Currency not supported');
     }
 
     const wallet = new WalletModel({ user: user._id, currency });
@@ -35,7 +48,7 @@ class WalletService {
   }
 
   async getWalletsByUserId(userId: string) {
-    const wallet = WalletModel.find({ user: userId }).populate('user');
+    const wallet = WalletModel.find({ user: ObjectId.createFromHexString(userId) }).populate('user');
     if (!wallet) {
       throw new NotFoundError('Wallets not found');
     }

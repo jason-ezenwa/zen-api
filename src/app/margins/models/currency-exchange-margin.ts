@@ -1,12 +1,12 @@
 import { prop, getModelForClass } from '@typegoose/typegoose';
 
-export class CurrencyExchangeMargin {
+export class Margin {
   @prop({ default: "Currency Exchange Margin" })
   public name!: string;
 
   @prop()
-  public marginInPercentage!: number;
+  public margin!: number;
 }
 
-const CurrencyExchangeMarginModel = getModelForClass(CurrencyExchangeMargin);
-export default CurrencyExchangeMarginModel;
+const MarginModel = getModelForClass(Margin);
+export default MarginModel;

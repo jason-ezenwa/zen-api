@@ -67,6 +67,8 @@ describe('AuthService', () => {
         dateOfBirth: new Date(),
         email: existingUser.email,
         password: 'password123',
+        phoneNumber: '+2347000000000',
+        bvn: '123456',
         address: {
           street: '123 Main St',
           city: 'New York',
@@ -88,6 +90,8 @@ describe('AuthService', () => {
         dateOfBirth: new Date(),
         email: 'newuser@example.com',
         password: 'password123',
+        phoneNumber: '+2347000000000',
+        bvn: '123456',
         address: {
           street: '123 Main St',
           city: 'New York',
