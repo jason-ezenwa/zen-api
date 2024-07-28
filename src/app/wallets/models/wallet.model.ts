@@ -1,6 +1,11 @@
-import { prop, getModelForClass, Ref } from '@typegoose/typegoose';
+import { prop, getModelForClass, Ref, modelOptions } from '@typegoose/typegoose';
 import { User } from '../../users/models/user.model'; 
 
+@modelOptions({
+  schemaOptions: {
+    timestamps: true,
+  },
+})
 class Wallet {
   @prop()
   public user!: Ref<User>;

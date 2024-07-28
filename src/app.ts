@@ -9,6 +9,12 @@ import currencyExchangeRoutes from './app/currency-exchange/routes/currency-exch
 const app = express();
 
 app.use(express.json());
+// logger middleware
+app.use((req,res,next) =>{
+  const requestTime = new Date().toLocaleString();
+  console.log(req.method,req.hostname, req.path, requestTime);
+  next();
+});
 app.use('/api/auth', authRoutes);
 app.use('/api/wallets', walletRoutes);
 app.use('/api/fx', currencyExchangeRoutes)

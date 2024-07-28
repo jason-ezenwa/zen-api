@@ -1,8 +1,14 @@
 import { compare } from 'bcryptjs';
 import UserModel from '../../users/models/user.model';
 import AuthService from './auth.service';
+import mapleradUserAccountService from '../../users/services/maplerad-user-account.service';
+import walletService from '../../wallets/services/wallet.service';
 
 describe('AuthService', () => {
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('login', () => {
     it('should throw an error if user does not exist', async () => {
       const input = {
@@ -102,6 +108,10 @@ describe('AuthService', () => {
       };
 
       jest.spyOn(UserModel, 'findOne').mockResolvedValue(null);
+
+      jest.spyOn(mapleradUserAccountService, 'createUserAccountOnMaplerad').mockResolvedValue(true);
+
+      jest.spyOn(walletService, 'createDefaultWallets').mockResolvedValue([]);
 
       const userCreateSpy = jest.spyOn(UserModel, 'create').mockResolvedValue({} as any);
 

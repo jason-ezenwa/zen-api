@@ -1,4 +1,5 @@
 import UserModel from '../../users/models/user.model';
+import mapleradUserAccountService from '../../users/services/maplerad-user-account.service';
 import walletService from '../../wallets/services/wallet.service';
 import { generateToken } from '../utils/jwt.util';
 
@@ -26,31 +27,52 @@ interface LoginInput {
 
 class AuthService {
   public async register(input: RegisterInput) {
-    const { email } = input;
+    try {
+      const {
+        firstName,
+        lastName,
+        email,
+        password,
+        phoneNumber,
+        address,
+        dateOfBirth,
+        bvn
+      } = input;
 
-    const existingUser = await UserModel.findOne({ email });
+      const existingUser = await UserModel.findOne({ email });
 
-    if (existingUser) {
-      throw new Error('User already exists');
-    }
+      if (existingUser) {
+        throw new Error('User already exists');
+      }
 
-    const user = new UserModel(input);
+      const user = await UserModel.create({
+        firstName,
+        lastName,
+        email,
+        password,
+        phoneNumber,
+        address,
+        dateOfBirth,
+        bvn
+      });
 
-    await UserModel.create(user);
+      await mapleradUserAccountService.createUserAccountOnMaplerad(user.id);
 
-    await walletService.createDefaultWallets(user.id);
+      await walletService.createDefaultWallets(user.id);
 
-    const token = generateToken(
-      {
+      const token = generateToken({
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
         dateOfBirth: user.dateOfBirth,
         phoneNumber: user.phoneNumber,
-      }
-    );
-    return { user, token };
+      });
+
+      return { user, token };
+    } catch (error) {
+      throw error;
+    }
   }
 
   public async login(input: LoginInput) {

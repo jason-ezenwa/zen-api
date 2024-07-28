@@ -1,4 +1,4 @@
-import { prop, getModelForClass, pre, Prop } from '@typegoose/typegoose';
+import { prop, getModelForClass, pre, Prop, modelOptions } from '@typegoose/typegoose';
 import bcrypt from 'bcryptjs';
 
 @pre<User>('save', async function(this: User, next: () => void) {
@@ -7,6 +7,12 @@ import bcrypt from 'bcryptjs';
   next();
 })
 
+
+@modelOptions({
+  schemaOptions: {
+    timestamps: true,
+  },
+})
 export class User {
   @prop({ required: true })
   public firstName!: string;
