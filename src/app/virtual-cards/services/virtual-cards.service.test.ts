@@ -13,8 +13,6 @@ describe('VirtualCardService', () => {
     jest.clearAllMocks();
   });
 
-  
-
   describe('createVirtualCard', () => {
     it('should create a virtual card for a user', async () => {
       const userId = 'user123';
@@ -38,13 +36,6 @@ describe('VirtualCardService', () => {
           reference: 'card123',
         },
       };
-      const axiosMock = axios as jest.Mocked<typeof axios>;
-
-      axiosMock.post.mockResolvedValue({
-        data: {
-          reference: 'card123',
-        },
-      });
 
       jest.spyOn(VirtualCardService, 'createVirtualCardOnMaplerad').mockResolvedValue(cardRequest as any);
 
