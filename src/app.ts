@@ -4,20 +4,24 @@ import config from './config';
 import authRoutes from './app/authentication/routes/auth.routes';
 import walletRoutes from './app/wallets/routes/wallets.routes';
 import currencyExchangeRoutes from './app/currency-exchange/routes/currency-exchange.route';
-// Import other routes here as needed
+import virtualCardsRoutes from "./app/virtual-cards/virtual-cards.routes";
+import webhookRoutes from "./app/webhook/webhook.routes";
 
 const app = express();
 
 app.use(express.json());
 // logger middleware
-app.use((req,res,next) =>{
-  const requestTime = new Date().toLocaleString();
-  console.log(req.method,req.hostname, req.path, requestTime);
-  next();
+app.use((req, res, next) => {
+	const requestTime = new Date().toLocaleString();
+	console.log(req.method, req.hostname, req.path, requestTime);
+	next();
 });
-app.use('/api/auth', authRoutes);
-app.use('/api/wallets', walletRoutes);
-app.use('/api/fx', currencyExchangeRoutes)
+app.get("/", (req, res) => res.send("Hello World!"));
+app.use("/api/auth", authRoutes);
+app.use("/api/wallets", walletRoutes);
+app.use("/api/fx", currencyExchangeRoutes);
+app.use("/api/virtual-cards", virtualCardsRoutes);
+app.use("/api/webhook", webhookRoutes);
 
 mongoose.connect(config.mongoURI)
 .then(() => console.log('MongoDB connected'))
