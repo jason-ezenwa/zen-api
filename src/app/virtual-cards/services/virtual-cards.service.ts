@@ -339,7 +339,13 @@ class VirtualCardService {
 			}
 
 			throw new Error("Unable to fund virtual card on Maplerad");
-		} catch (error) {}
+		} catch (error: any) {
+			console.error(
+				"Error funding virtual card:",
+				error.response?.data || error.message
+			);
+			throw error;
+		}
 	}
 }
 
