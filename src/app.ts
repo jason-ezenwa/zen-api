@@ -6,6 +6,7 @@ import walletRoutes from './app/wallets/routes/wallets.routes';
 import currencyExchangeRoutes from './app/currency-exchange/routes/currency-exchange.route';
 import virtualCardsRoutes from "./app/virtual-cards/virtual-cards.routes";
 import webhookRoutes from "./app/webhook/webhook.routes";
+import { job } from "./cron-job";
 
 const app = express();
 
@@ -16,20 +17,21 @@ app.use((req, res, next) => {
 	console.log(req.method, req.hostname, req.path, requestTime);
 	next();
 });
-app.get("/", (req, res) => res.send("Hello World!"));
+app.get("/", (req, res) => res.send("Hello, welcome to the ZEN API"));
 app.use("/api/auth", authRoutes);
 app.use("/api/wallets", walletRoutes);
 app.use("/api/fx", currencyExchangeRoutes);
 app.use("/api/virtual-cards", virtualCardsRoutes);
 app.use("/api/webhook", webhookRoutes);
 
-mongoose.connect(config.mongoURI)
-.then(() => console.log('MongoDB connected'))
-  .catch(err => console.error(err));
-
+mongoose
+	.connect(config.mongoURI)
+	.then(() => console.log("MongoDB connected"))
+	.catch((err) => console.error(err));
 
 const port = config.port || 5000;
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+	console.log(`Server is running on port ${port}`);
+	job.start();
 });
 export default app;

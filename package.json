@@ -7,13 +7,14 @@
     "test": "jest",
     "migrate-db": "migrate-mongo up",
     "create-db-migration": "migrate-mongo create",
-    "start": "node dist/app.js",
+    "start": "npm run migrate-db && node dist/app.js",
     "dev": "npm run migrate-db && ts-node-dev --respawn --transpile-only src/app.ts"
   },
   "dependencies": {
     "@typegoose/typegoose": "^12.6.0",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
+    "cron": "^3.1.7",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "express-async-handler": "^1.2.0",
