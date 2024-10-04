@@ -10,6 +10,8 @@
 - Knowledge of Typescript
 - Knowledge of using MongoDB
 - Knowledge of unit testing
+- A Maplerad account
+- Knowledge of redis
 
 ### Getting Started
 To get started:
