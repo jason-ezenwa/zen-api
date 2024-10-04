@@ -1,17 +1,17 @@
 ## Zen, An API for a Fintech Application
 
-# Features
+### Features
 - Authentication
 - Wallets
 - Currency exchange
 - Virtual Cards
 
-# Prerequisites
+### Prerequisites
 - Knowledge of Typescript
 - Knowledge of using MongoDB
 - Knowledge of unit testing
 
-# Getting Started
+### Getting Started
 To get started:
 
 - Clone the repository `git clone https://github.com/jason-ezenwa/zen-api`
