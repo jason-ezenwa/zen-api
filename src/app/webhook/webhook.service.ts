@@ -21,12 +21,16 @@ const mapleradIPAddresses = [
 class WebhookService {
 	async handleCardCreation(req: Request) {
 		try {
-			const requestIpAddress = req.headers["x-real-ip"] as string;
+			let requestIPAddress = req.headers["x-real-ip"] as string;
 
-			if (!mapleradIPAddresses.includes(requestIpAddress)) {
+			if (!requestIPAddress) {
+				requestIPAddress = req.headers["true-client-ip"] as string;
+			}
+
+			if (!mapleradIPAddresses.includes(requestIPAddress)) {
 				console.log(
 					"Unauthorized request for card creation from IP address:",
-					requestIpAddress
+					requestIPAddress
 				);
 
 				console.log({ headers: req.headers, body: req.body });
@@ -83,9 +87,9 @@ class WebhookService {
 
 	async handleCardCreationFailed(req: Request) {
 		try {
-			const requestIpAddress = req.headers["x-real-ip"] as string;
+			const requestIPAddress = req.headers["x-real-ip"] as string;
 
-			if (!mapleradIPAddresses.includes(requestIpAddress)) {
+			if (!mapleradIPAddresses.includes(requestIPAddress)) {
 				throw new UnauthorizedError("Unauthorized request");
 			}
 
