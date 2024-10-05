@@ -28,7 +28,9 @@ class WebhookService {
 					"Unauthorized request for card creation from IP address:",
 					requestIpAddress
 				);
-				
+
+				console.log({ headers: req.headers, body: req.body });
+
 				throw new UnauthorizedError("Unauthorized request");
 			}
 
