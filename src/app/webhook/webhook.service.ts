@@ -24,6 +24,11 @@ class WebhookService {
 			const requestIpAddress = req.headers["x-real-ip"] as string;
 
 			if (!mapleradIPAddresses.includes(requestIpAddress)) {
+				console.log(
+					"Unauthorized request for card creation from IP address:",
+					requestIpAddress
+				);
+				
 				throw new UnauthorizedError("Unauthorized request");
 			}
 
