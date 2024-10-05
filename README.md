@@ -2,7 +2,7 @@
 
 ### Features
 - Authentication
-- Wallets
+- Multicurrency Wallets
 - Currency exchange
 - Virtual Cards
 
