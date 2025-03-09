@@ -20,6 +20,8 @@ describe('WalletService', () => {
         currency,
       };
 
+      jest.spyOn(WalletModel, 'findOne').mockResolvedValue(null);
+
       const walletCreateSpy = jest.spyOn(WalletModel, 'create').mockResolvedValue({} as any);
 
       const createdWallet = await WalletService.createWallet(userId, currency);

@@ -1,9 +1,9 @@
 import axios from 'axios';
-import MarginModel from '../../margins/models/currency-exchange-margin'; // Adjust the path if necessary
 import { NotFoundError } from '../../errors';
 import redisClient from '../../redisClient';
 import WalletModel from '../../wallets/models/wallet.model';
 import UserModel from '../../users/models/user.model';
+import MarginModel from '../../margins/models/margin';
 
 interface FXQuoteResponse {
   sourceAmount: number;

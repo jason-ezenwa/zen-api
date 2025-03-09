@@ -48,7 +48,7 @@ class WalletService {
   }
 
   async getWalletsByUserId(userId: string) {
-    const wallet = WalletModel.find({ user: ObjectId.createFromHexString(userId) }).populate('user');
+    const wallet = await WalletModel.find({ user: ObjectId.createFromHexString(userId) }).populate('user');
     if (!wallet) {
       throw new NotFoundError('Wallets not found');
     }
@@ -57,12 +57,35 @@ class WalletService {
   }
 
   async getWalletByWalletId(walletId: string) {
-    const wallet = WalletModel.findById(walletId).populate('user');
+    const wallet = await WalletModel.findById(walletId).populate("user");
+
     if (!wallet) {
       throw new NotFoundError('Wallet not found');
     }
 
     return wallet;
+  }
+
+  async fundWallet(amount: number, walletId: string) {
+    const wallet = await WalletModel.findById(walletId).populate("user");
+
+		if (!wallet) {
+			throw new NotFoundError("Wallet not found");
+    }
+    
+    /**
+     * todo: implement handler to fund wallet
+     */
+
+    const walletBalance = wallet.balance;
+
+    const updatedWallet = await WalletModel.findByIdAndUpdate(wallet.id, {
+      $set: {
+        balance: walletBalance + amount
+      }
+    }, {new: true})
+
+    return updatedWallet;
   }
 }
 
