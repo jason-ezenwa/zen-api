@@ -1,7 +1,8 @@
-import UserModel from '../../users/models/user.model';
-import mapleradUserAccountService from '../../users/services/maplerad-user-account.service';
-import walletService from '../../wallets/services/wallet.service';
-import { generateToken } from '../utils/jwt.util';
+import { DocumentType } from "@typegoose/typegoose";
+import UserModel, { User } from "../../users/models/user.model";
+import mapleradUserAccountService from "../../users/services/maplerad-user-account.service";
+import walletService from "../../wallets/services/wallet.service";
+import { generateToken } from "../utils/jwt.util";
 
 interface RegisterInput {
   firstName: string;
@@ -36,13 +37,13 @@ class AuthService {
         phoneNumber,
         address,
         dateOfBirth,
-        bvn
+        bvn,
       } = input;
 
       const existingUser = await UserModel.findOne({ email });
 
       if (existingUser) {
-        throw new Error('User already exists');
+        throw new Error("User already exists");
       }
 
       const user = await UserModel.create({
@@ -53,7 +54,7 @@ class AuthService {
         phoneNumber,
         address,
         dateOfBirth,
-        bvn
+        bvn,
       });
 
       await mapleradUserAccountService.createUserAccountOnMaplerad(user.id);
@@ -81,13 +82,13 @@ class AuthService {
     const user = await UserModel.findOne({ email });
 
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new Error("Invalid credentials");
     }
 
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
-      throw new Error('Invalid credentials');
+      throw new Error("Invalid credentials");
     }
 
     const token = generateToken({
@@ -98,8 +99,20 @@ class AuthService {
       dateOfBirth: user.dateOfBirth,
       phoneNumber: user.phoneNumber,
     });
-      
-    return { user, token };
+
+    const userWithoutSensitiveData = await this.removeSensitiveData(user);
+
+    return { user: userWithoutSensitiveData, token };
+  }
+
+  async removeSensitiveData(user: DocumentType<User>) {
+    const sensitiveData = ["password", "bvn"];
+
+    const userObject = user.toObject();
+
+    return Object.fromEntries(
+      Object.entries(userObject).filter(([key]) => !sensitiveData.includes(key))
+    );
   }
 }
 

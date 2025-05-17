@@ -4,13 +4,14 @@
   "main": "dist/app.js",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --verbose",
     "migrate-db": "migrate-mongo up",
     "create-db-migration": "migrate-mongo create",
     "start": "npm run migrate-db && node dist/app.js",
     "dev": "npm run migrate-db && ts-node-dev --respawn --transpile-only src/app.ts"
   },
   "dependencies": {
+    "@golevelup/ts-jest": "^0.7.0",
     "@typegoose/typegoose": "^12.6.0",
     "axios": "^1.7.2",
     "bcryptjs": "^2.4.3",
@@ -21,7 +22,8 @@
     "jsonwebtoken": "^8.5.1",
     "mongodb": "^6.8.0",
     "mongoose": "^8.5.1",
-    "redis": "^4.6.15"
+    "redis": "^4.6.15",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.24.7",

@@ -6,15 +6,15 @@ import { User } from '../../users/models/user.model';
     timestamps: true,
   },
 })
-class Wallet {
+export class Wallet {
   @prop()
-  public user!: Ref<User>;
+  user: Ref<User>;
 
   @prop()
-  public currency!: string;
+  currency: string;
 
   @prop({ default: 0 })
-  public balance!: number;
+  balance: number;
 }
 
 const WalletModel = getModelForClass(Wallet);

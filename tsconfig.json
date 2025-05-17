@@ -9,6 +9,7 @@
     "rootDir": "./src",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "strictPropertyInitialization": false
   },
   "include": ["src/**/*.ts", "errors.ts", "src/app/margins/models/currency-exchange-margin"],
   "exclude": ["node_modules"]

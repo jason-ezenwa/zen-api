@@ -21,6 +21,12 @@ export class BadRequestError extends CustomError {
   }
 }
 
+export class UnprocessableContentError extends CustomError {
+  constructor(message: string) {
+    super(422, message);
+  }
+}
+
 export class UnauthorizedError extends CustomError {
   constructor(message: string) {
     super(401, message);

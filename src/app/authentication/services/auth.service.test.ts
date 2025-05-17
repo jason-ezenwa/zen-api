@@ -1,48 +1,51 @@
-import { compare } from 'bcryptjs';
-import UserModel from '../../users/models/user.model';
-import AuthService from './auth.service';
-import mapleradUserAccountService from '../../users/services/maplerad-user-account.service';
-import walletService from '../../wallets/services/wallet.service';
+import UserModel from "../../users/models/user.model";
+import AuthService from "./auth.service";
+import mapleradUserAccountService from "../../users/services/maplerad-user-account.service";
+import walletService from "../../wallets/services/wallet.service";
 
-describe('AuthService', () => {
+describe("AuthService", () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('login', () => {
-    it('should throw an error if user does not exist', async () => {
+  describe("login", () => {
+    it("should throw an error if user does not exist", async () => {
       const input = {
-        email: 'nonexistent@example.com',
-        password: 'password123',
+        email: "nonexistent@example.com",
+        password: "password123",
       };
 
-      jest.spyOn(UserModel, 'findOne').mockResolvedValue(null);
+      jest.spyOn(UserModel, "findOne").mockResolvedValue(null);
 
-      await expect(AuthService.login(input)).rejects.toThrow('Invalid credentials');
+      await expect(AuthService.login(input)).rejects.toThrow(
+        "Invalid credentials"
+      );
     });
 
-    it('should throw an error if password is incorrect', async () => {
+    it("should throw an error if password is incorrect", async () => {
       const existingUser = {
-        email: 'existing@example.com',
-        password: 'correctpassword',
+        email: "existing@example.com",
+        password: "correctpassword",
         comparePassword: jest.fn(),
       };
 
       const input = {
         email: existingUser.email,
-        password: 'incorrectpassword',
+        password: "incorrectpassword",
       };
 
-      jest.spyOn(UserModel, 'findOne').mockResolvedValue(existingUser);
-      jest.spyOn(existingUser, 'comparePassword').mockResolvedValue(false);
+      jest.spyOn(UserModel, "findOne").mockResolvedValue(existingUser);
+      jest.spyOn(existingUser, "comparePassword").mockResolvedValue(false);
 
-      await expect(AuthService.login(input)).rejects.toThrow('Invalid credentials');
+      await expect(AuthService.login(input)).rejects.toThrow(
+        "Invalid credentials"
+      );
     });
 
-    it('should return user and token if login is successful', async () => {
+    it("should return user and token if login is successful", async () => {
       const existingUser = {
-        email: 'existing@example.com',
-        password: 'correctpassword',
+        email: "existing@example.com",
+        password: "correctpassword",
         comparePassword: jest.fn(),
       };
 
@@ -51,8 +54,11 @@ describe('AuthService', () => {
         password: existingUser.password,
       };
 
-      jest.spyOn(UserModel, 'findOne').mockResolvedValue(existingUser);
-      jest.spyOn(existingUser, 'comparePassword').mockResolvedValue(true);
+      jest.spyOn(UserModel, "findOne").mockResolvedValue(existingUser);
+      jest
+        .spyOn(AuthService, "removeSensitiveData")
+        .mockResolvedValue(existingUser);
+      jest.spyOn(existingUser, "comparePassword").mockResolvedValue(true);
 
       const result = await AuthService.login(input);
 
@@ -61,59 +67,65 @@ describe('AuthService', () => {
     });
   });
 
-  describe('register', () => {
-    it('should throw an error if user already exists', async () => {
+  describe("register", () => {
+    it("should throw an error if user already exists", async () => {
       const existingUser = {
-        email: 'existing@example.com',
+        email: "existing@example.com",
       };
 
       const input = {
-        firstName: 'John',
-        lastName: 'Doe',
+        firstName: "John",
+        lastName: "Doe",
         dateOfBirth: new Date(),
         email: existingUser.email,
-        password: 'password123',
-        phoneNumber: '+2347000000000',
-        bvn: '123456',
+        password: "password123",
+        phoneNumber: "+2347000000000",
+        bvn: "123456",
         address: {
-          street: '123 Main St',
-          city: 'New York',
-          state: 'NY',
-          country: 'USA',
-          zipCode: '10001',
+          street: "123 Main St",
+          city: "New York",
+          state: "NY",
+          country: "USA",
+          zipCode: "10001",
         },
       };
 
-      jest.spyOn(UserModel, 'findOne').mockResolvedValue(existingUser);
+      jest.spyOn(UserModel, "findOne").mockResolvedValue(existingUser);
 
-      await expect(AuthService.register(input)).rejects.toThrow('User already exists');
+      await expect(AuthService.register(input)).rejects.toThrow(
+        "User already exists"
+      );
     });
 
-    it('should create a new user and return user and token', async () => {
+    it("should create a new user and return user and token", async () => {
       const input = {
-        firstName: 'John',
-        lastName: 'Doe',
+        firstName: "John",
+        lastName: "Doe",
         dateOfBirth: new Date(),
-        email: 'newuser@example.com',
-        password: 'password123',
-        phoneNumber: '+2347000000000',
-        bvn: '123456',
+        email: "newuser@example.com",
+        password: "password123",
+        phoneNumber: "+2347000000000",
+        bvn: "123456",
         address: {
-          street: '123 Main St',
-          city: 'New York',
-          state: 'NY',
-          country: 'USA',
-          zipCode: '10001',
+          street: "123 Main St",
+          city: "New York",
+          state: "NY",
+          country: "USA",
+          zipCode: "10001",
         },
       };
 
-      jest.spyOn(UserModel, 'findOne').mockResolvedValue(null);
+      jest.spyOn(UserModel, "findOne").mockResolvedValue(null);
 
-      jest.spyOn(mapleradUserAccountService, 'createUserAccountOnMaplerad').mockResolvedValue(true);
+      jest
+        .spyOn(mapleradUserAccountService, "createUserAccountOnMaplerad")
+        .mockResolvedValue(true);
 
-      jest.spyOn(walletService, 'createDefaultWallets').mockResolvedValue([]);
+      jest.spyOn(walletService, "createDefaultWallets").mockResolvedValue([]);
 
-      const userCreateSpy = jest.spyOn(UserModel, 'create').mockResolvedValue({} as any);
+      const userCreateSpy = jest
+        .spyOn(UserModel, "create")
+        .mockResolvedValue({} as any);
 
       const result = await AuthService.register(input);
 
@@ -121,7 +133,9 @@ describe('AuthService', () => {
 
       expect(result.token).toBeDefined();
 
-      expect(userCreateSpy).toHaveBeenCalledWith(expect.objectContaining(input));
+      expect(userCreateSpy).toHaveBeenCalledWith(
+        expect.objectContaining(input)
+      );
     });
   });
 });
