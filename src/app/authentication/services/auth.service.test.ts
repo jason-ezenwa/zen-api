@@ -57,7 +57,7 @@ describe("AuthService", () => {
       jest.spyOn(UserModel, "findOne").mockResolvedValue(existingUser);
       jest
         .spyOn(AuthService, "removeSensitiveData")
-        .mockResolvedValue(existingUser);
+        .mockResolvedValueOnce(existingUser);
       jest.spyOn(existingUser, "comparePassword").mockResolvedValue(true);
 
       const result = await AuthService.login(input);
@@ -122,6 +122,11 @@ describe("AuthService", () => {
         .mockResolvedValue(true);
 
       jest.spyOn(walletService, "createDefaultWallets").mockResolvedValue([]);
+      jest.spyOn(AuthService, "removeSensitiveData").mockResolvedValue({
+        ...input,
+        password: undefined,
+        bvn: undefined,
+      } as any);
 
       const userCreateSpy = jest
         .spyOn(UserModel, "create")

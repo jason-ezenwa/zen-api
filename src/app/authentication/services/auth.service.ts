@@ -26,7 +26,7 @@ interface LoginInput {
   password: string;
 }
 
-class AuthService {
+export class AuthService {
   public async register(input: RegisterInput) {
     try {
       const {
@@ -70,7 +70,9 @@ class AuthService {
         phoneNumber: user.phoneNumber,
       });
 
-      return { user, token };
+      const userWithoutSensitiveData = await this.removeSensitiveData(user);
+
+      return { user: userWithoutSensitiveData, token };
     } catch (error) {
       throw error;
     }
