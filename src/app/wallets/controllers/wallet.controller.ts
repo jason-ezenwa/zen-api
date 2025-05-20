@@ -32,9 +32,9 @@ class WalletController {
     try {
       const userId = req.user.id;
 
-      const wallet = await WalletService.getWalletsByUserId(userId);
+      const wallets = await WalletService.getWalletsByUserId(userId);
 
-      return res.status(200).json(wallet);
+      return res.status(200).json({ wallets });
     } catch (error) {
       if (error instanceof BadRequestError || error instanceof NotFoundError) {
         return res.status(error.statusCode).json({ error: error.message });
@@ -50,7 +50,7 @@ class WalletController {
 
       const wallet = await WalletService.getWalletByWalletId(dto.walletId);
 
-      return res.status(200).json(wallet);
+      return res.status(200).json({ wallet });
     } catch (error) {
       if (error instanceof BadRequestError || error instanceof NotFoundError) {
         return res.status(error.statusCode).json({ error: error.message });

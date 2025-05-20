@@ -16,7 +16,7 @@ class UsersController {
 
       const user = await this.usersService.getUserById(requestUser.id);
 
-      return res.status(200).json(user);
+      return res.status(200).json({ user });
     } catch (error) {
       if (
         error instanceof NotFoundError ||
