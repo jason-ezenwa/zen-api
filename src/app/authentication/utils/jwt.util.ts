@@ -21,7 +21,7 @@ export const generateToken = (user: UserPayload) => {
       phoneNumber: user.phoneNumber,
     },
     config.jwtSecret,
-    { expiresIn: '1h' }
+    { expiresIn: "4h" }
   );
 };
 
