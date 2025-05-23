@@ -13,7 +13,7 @@ export class VirtualCardRequest {
   @prop({ required: true })
   public cardReference!: string;
 
-  @prop({ required: true, default: 'Pending' })
+  @prop({ required: true, default: "PENDING" })
   public status!: string;
 }
 
