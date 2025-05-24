@@ -4,6 +4,7 @@ import { BadRequestError, NotFoundError } from '../../errors';
 import { validateWithSchema } from "../../../utils";
 import { depositFundsSchema } from "../dto/deposit-funds.dto";
 import { getWalletSchema } from "../dto/wallet.dto";
+import { getUserRecordsSchema } from "../../common/dtos";
 
 class WalletController {
   async createWallet(req: Request, res: Response) {
@@ -79,6 +80,31 @@ class WalletController {
       }
 
       return res.status(500).json({ error });
+    }
+  }
+
+  async getMyDeposits(req: Request, res: Response) {
+    try {
+      const userId = req.user.id;
+
+      const { page = 1 } = req.query;
+
+      console.log({ page, userId });
+
+      const dto = validateWithSchema(getUserRecordsSchema, {
+        userId,
+        page,
+      });
+
+      const result = await WalletService.getUserDeposits(dto);
+
+      return res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof NotFoundError || error instanceof BadRequestError) {
+        return res.status(error.statusCode).json({ error: error.message });
+      }
+
+      return res.status(500).json({ error: "Internal Server Error" });
     }
   }
 }

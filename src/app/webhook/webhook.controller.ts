@@ -18,6 +18,25 @@ const mapleradIPAddresses = [
   "54.148.139.208",
 ];
 
+const checkMapleradIPAddress = (requestIPAddress: string) => {
+  const ipAddress = requestIPAddress.includes(":")
+    ? requestIPAddress.split(":")[0]
+    : requestIPAddress;
+
+  if (!mapleradIPAddresses.includes(ipAddress)) {
+    logEvent(
+      "error",
+      "Unauthorized request for card creation from IP address",
+      {
+        ipAddress,
+      }
+    );
+
+    throw new UnauthorizedError("Unauthorized request");
+  }
+  return mapleradIPAddresses.includes(ipAddress);
+};
+
 class WebhookController {
   constructor(private readonly walletService: WalletService) {}
   async handleWebhook(req: Request, res: Response) {
@@ -26,31 +45,18 @@ class WebhookController {
       (req.headers["true-client-ip"] as string) ||
       (req.headers["x-forwarded-for"] as string);
 
-    const ipAddress = requestIPAddress.split(":")[0];
-
-    if (!mapleradIPAddresses.includes(ipAddress)) {
-      logEvent(
-        "error",
-        "Unauthorized request for card creation from IP address",
-        {
-          ipAddress,
-          headers: req.headers,
-        }
-      );
-
-      return res.status(401).json({ error: "Unauthorized request" });
-    }
-
     try {
       logEvent("info", "Webhook received", {
         body: req.body,
       });
 
       if (req.body.event === "issuing.created.successful") {
+        checkMapleradIPAddress(requestIPAddress);
         webhookService.handleCardCreation(req);
       }
 
       if (req.body.event === "issuing.created.failed") {
+        checkMapleradIPAddress(requestIPAddress);
         webhookService.handleCardCreationFailed(req);
       }
 

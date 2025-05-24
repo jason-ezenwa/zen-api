@@ -4,6 +4,11 @@ import redisClient from '../../redisClient';
 import WalletModel from '../../wallets/models/wallet.model';
 import UserModel from '../../users/models/user.model';
 import MarginModel from '../../margins/models/margin';
+import { GetUserRecordsDto } from "../../common/dtos";
+import { logEvent } from "../../../utils";
+import CurrencyExchangeModel from "../models/currency-exchange";
+import { CurrencyExchange } from "../models/currency-exchange";
+import { TransactionStatus } from "../../../types";
 
 interface FXQuoteResponse {
   sourceAmount: number;
@@ -41,12 +46,12 @@ class CurrencyExchangeService {
   ): Promise<FXQuoteResponse> {
     try {
       const mapleradOptions = {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.MAPLERAD_SECRET_KEY}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.MAPLERAD_SECRET_KEY}`,
         },
-        url: 'https://sandbox.api.maplerad.com/v1/fx/quote',
+        url: "https://sandbox.api.maplerad.com/v1/fx/quote",
         data: {
           source_currency: sourceCurrency,
           target_currency: targetCurrency,
@@ -60,7 +65,8 @@ class CurrencyExchangeService {
       // inputting our margin
       const exchangeRateMargin = await this.getCurrencyExchangeMarginFromDb();
       const { margin } = exchangeRateMargin;
-      const ratePercentageAmount = parseFloat(margin) * parseFloat(quoteData.rate);
+      const ratePercentageAmount =
+        parseFloat(margin) * parseFloat(quoteData.rate);
 
       const exchangeRate = parseFloat(quoteData.rate) - ratePercentageAmount; // remove margin % of the exchange rate
       const targetAmount = amount * exchangeRate;
@@ -74,20 +80,25 @@ class CurrencyExchangeService {
         quoteReference,
       };
     } catch (error: any) {
-      console.error('Error generating FX quote:', error.response?.data || error.message);
+      console.error(
+        "Error generating FX quote:",
+        error.response?.data || error.message
+      );
       throw error;
     }
   }
 
-  public async exchangeCurrencyOnMaplerad(quoteReference: string): Promise<any> {
+  public async exchangeCurrencyOnMaplerad(
+    quoteReference: string
+  ): Promise<any> {
     try {
       const mapleradOptions = {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.MAPLERAD_SECRET_KEY}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.MAPLERAD_SECRET_KEY}`,
         },
-        url: 'https://sandbox.api.maplerad.com/v1/fx',
+        url: "https://sandbox.api.maplerad.com/v1/fx",
         data: {
           quote_reference: quoteReference,
         },
@@ -97,9 +108,14 @@ class CurrencyExchangeService {
       if (response.data.status === true) {
         return response.data;
       }
-      throw new Error('Unable to process currency exchange, please try again later.');
+      throw new Error(
+        "Unable to process currency exchange, please try again later."
+      );
     } catch (error: any) {
-      console.error('Error processing currency exchange:', error.response?.data || error.message);
+      console.error(
+        "Error processing currency exchange:",
+        error.response?.data || error.message
+      );
       throw error;
     }
   }
@@ -113,17 +129,18 @@ class CurrencyExchangeService {
       let fxQuote = await redis.get(fxQuoteKey);
 
       if (!fxQuote) {
-        throw new NotFoundError('FX Quote not found');
+        throw new NotFoundError("FX Quote not found");
       }
 
       const parsedFxQuote: ParsedFXQuote = JSON.parse(fxQuote);
 
-      const { sourceAmount, targetAmount, sourceCurrency, targetCurrency } = parsedFxQuote;
+      const { sourceAmount, targetAmount, sourceCurrency, targetCurrency } =
+        parsedFxQuote;
 
       const user = await UserModel.findById(userId);
 
       if (!user) {
-        throw new NotFoundError('User not found');
+        throw new NotFoundError("User not found");
       }
 
       const sourceCurrencyWallet = await WalletModel.findOne({
@@ -137,17 +154,21 @@ class CurrencyExchangeService {
       });
 
       if (!sourceCurrencyWallet) {
-        throw new NotFoundError(`User does not have a ${sourceCurrency} wallet`);
+        throw new NotFoundError(
+          `User does not have a ${sourceCurrency} wallet`
+        );
       }
 
       if (!targetCurrencyWallet) {
-        throw new NotFoundError(`User does not have a ${targetCurrency} wallet`);
+        throw new NotFoundError(
+          `User does not have a ${targetCurrency} wallet`
+        );
       }
 
       if (sourceCurrencyWallet.balance < sourceAmount) {
-        throw new Error('Insufficient balance');
+        throw new Error("Insufficient balance");
       }
-      
+
       await this.exchangeCurrencyOnMaplerad(quoteReference);
 
       // TODO: implement exchange in wallets
@@ -158,12 +179,73 @@ class CurrencyExchangeService {
       await sourceCurrencyWallet.save();
 
       await targetCurrencyWallet.save();
-      
+
+      const fxTransaction = new CurrencyExchange();
+
+      fxTransaction.user = user._id;
+      fxTransaction.sourceCurrency = sourceCurrency;
+      fxTransaction.targetCurrency = targetCurrency;
+      fxTransaction.sourceAmount = sourceAmount;
+      fxTransaction.targetAmount = targetAmount;
+      fxTransaction.status = TransactionStatus.COMPLETED;
+      fxTransaction.reference = fxQuoteKey;
+
+      const createdFxTransaction = await CurrencyExchangeModel.create(
+        fxTransaction
+      );
+
       await redis.del(fxQuoteKey); // quote is no longer valid
 
-      return true;
+      return createdFxTransaction;
     } catch (error) {
       await redis.del(fxQuoteKey); // quote is no longer valid
+      throw error;
+    }
+  }
+
+  async getUserFXTransactions(getUserRecordsDto: GetUserRecordsDto) {
+    try {
+      logEvent("info", "Getting user fx transactions", {
+        ...getUserRecordsDto,
+      });
+
+      const { userId, page = 1 } = getUserRecordsDto;
+
+      const numberOfRecordsPerPage = 10;
+
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      const fxTransactions = await CurrencyExchangeModel.find(
+        { user: user._id },
+        null,
+        {
+          skip: (page - 1) * numberOfRecordsPerPage,
+          limit: numberOfRecordsPerPage,
+        }
+      );
+
+      const totalRecords = await CurrencyExchangeModel.countDocuments({
+        user: user._id,
+      });
+
+      const totalPages = Math.ceil(totalRecords / numberOfRecordsPerPage);
+
+      return {
+        fxTransactions,
+        totalPages,
+        page,
+        totalRecords,
+        numberOfRecordsPerPage,
+      };
+    } catch (error) {
+      logEvent("error", "Error getting user fx transactions", {
+        error,
+      });
+
       throw error;
     }
   }

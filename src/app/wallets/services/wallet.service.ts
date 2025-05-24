@@ -8,6 +8,7 @@ import { randomUUID } from "crypto";
 import DepositModel from "../models/deposit.model";
 import { logEvent } from "../../../utils";
 import { TransactionStatus } from "../../../types";
+import { GetUserRecordsDto } from "../../common/dtos";
 export class WalletService {
   constructor(private readonly paystackService: PaystackService) {}
   async createWallet(userId: string, currency: string) {
@@ -180,6 +181,47 @@ export class WalletService {
       return true;
     } catch (error) {
       logEvent("error", "Error crediting wallet", {
+        error,
+      });
+
+      throw error;
+    }
+  }
+
+  async getUserDeposits(getUserRecordsDto: GetUserRecordsDto) {
+    try {
+      const { userId, page = 1 } = getUserRecordsDto;
+
+      const numberOfRecordsPerPage = 10;
+
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      const deposits = await DepositModel.find({ user: user._id }, null, {
+        skip: (page - 1) * numberOfRecordsPerPage,
+        limit: numberOfRecordsPerPage,
+      });
+
+      console.log({ deposits });
+
+      const totalRecords = await DepositModel.countDocuments({
+        user: user._id,
+      });
+
+      const totalPages = Math.ceil(totalRecords / numberOfRecordsPerPage);
+
+      return {
+        deposits,
+        totalPages,
+        page,
+        totalRecords,
+        numberOfRecordsPerPage,
+      };
+    } catch (error) {
+      logEvent("error", "Error getting user deposits", {
         error,
       });
 
