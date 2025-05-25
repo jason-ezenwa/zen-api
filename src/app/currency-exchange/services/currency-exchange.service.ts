@@ -225,6 +225,7 @@ class CurrencyExchangeService {
         {
           skip: (page - 1) * numberOfRecordsPerPage,
           limit: numberOfRecordsPerPage,
+          sort: { createdAt: -1 },
         }
       );
 

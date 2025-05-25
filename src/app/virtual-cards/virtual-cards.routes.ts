@@ -18,6 +18,14 @@ router.get(
 );
 
 router.get(
+  "/my-transactions",
+  authenticate,
+  VirtualCardsController.getMyVirtualCardTransactions.bind(
+    VirtualCardsController
+  )
+);
+
+router.get(
 	"/:cardId",
 	authenticate,
 	VirtualCardsController.getVirtualCard.bind(VirtualCardsController)

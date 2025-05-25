@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import virtualCardsService from "../services/virtual-cards.service";
-import { NotFoundError } from "../../errors";
-import { logEvent } from "../../../utils";
+import { BadRequestError, NotFoundError } from "../../errors";
+import { logEvent, validateWithSchema } from "../../../utils";
+import { getUserRecordsSchema } from "../../common/dtos";
 
 class VirtualCardsController {
   async createVirtualCard(req: Request, res: Response) {
@@ -129,11 +130,36 @@ class VirtualCardsController {
 
       return res.status(200).json({ success });
     } catch (error) {
-      if (error instanceof NotFoundError) {
-        return res.status(404).json({ error: error.message });
+      if (error instanceof NotFoundError || error instanceof BadRequestError) {
+        return res.status(error.statusCode).json({ error: error.message });
       }
 
       logEvent("error", "Error funding virtual card", { error });
+
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
+  async getMyVirtualCardTransactions(req: Request, res: Response) {
+    try {
+      const userId = req.user.id;
+
+      const { page = 1 } = req.query;
+
+      const dto = validateWithSchema(getUserRecordsSchema, {
+        userId,
+        page,
+      });
+
+      const result = await virtualCardsService.getVirtualCardTransactions(dto);
+
+      return res.status(200).json(result);
+    } catch (error) {
+      logEvent("error", "Error getting virtual card transactions", { error });
+
+      if (error instanceof NotFoundError || error instanceof BadRequestError) {
+        return res.status(error.statusCode).json({ error: error.message });
+      }
 
       return res.status(500).json({ error: "Internal Server Error" });
     }

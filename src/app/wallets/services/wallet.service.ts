@@ -203,9 +203,8 @@ export class WalletService {
       const deposits = await DepositModel.find({ user: user._id }, null, {
         skip: (page - 1) * numberOfRecordsPerPage,
         limit: numberOfRecordsPerPage,
+        sort: { createdAt: -1 },
       });
-
-      console.log({ deposits });
 
       const totalRecords = await DepositModel.countDocuments({
         user: user._id,

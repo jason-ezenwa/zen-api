@@ -1,5 +1,5 @@
 import axios from "axios";
-import { NotFoundError } from "../../errors";
+import { BadRequestError, NotFoundError } from "../../errors";
 import UserMapleRadAccountModel from "../../users/models/user-maplerad-account.model";
 import UserModel from "../../users/models/user.model";
 import VirtualCardRequestModel from "../models/virtual-card-request.model";
@@ -8,6 +8,12 @@ import USDVirtualCardFeesModel from "../../fees/models/usd-virtual-card-fees";
 import VirtualCardModel, { VirtualCard } from "../models/virtual-card.model";
 import { ObjectId } from "mongodb";
 import { logEvent } from "../../../utils";
+import {
+  VirtualCardTransaction,
+  VirtualCardTransactionModel,
+} from "../models/virtual-card-transaction";
+import { GetUserRecordsDto } from "../../common/dtos";
+import { TransactionStatus } from "../../../types";
 
 class VirtualCardService {
   async createVirtualCard(
@@ -359,37 +365,64 @@ class VirtualCardService {
   }
 
   async fundVirtualCard(userId: string, cardId: string, amount: number) {
-    const card = await VirtualCardModel.findOne({
-      cardId,
-      user: ObjectId.createFromHexString(userId),
-    });
+    try {
+      const user = await UserModel.findById(userId);
 
-    if (!card) {
-      throw new NotFoundError("Virtual card not found");
-    }
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
 
-    const userWallet = await WalletModel.findOne({
-      currency: card.currency,
-      user: ObjectId.createFromHexString(userId),
-    });
-
-    if (!userWallet) {
-      throw new NotFoundError(`User does not have a ${card.currency} wallet`);
-    }
-
-    if (userWallet.balance < amount) {
-      throw new Error("Insufficient balance");
-    }
-
-    const status = await this.fundVirtualCardOnMaplerad(cardId, amount);
-
-    if (status) {
-      await userWallet.updateOne({
-        balance: userWallet.balance - amount,
+      const card = await VirtualCardModel.findOne({
+        cardId,
+        user: ObjectId.createFromHexString(userId),
       });
-    }
 
-    return status;
+      if (!card) {
+        throw new NotFoundError("Virtual card not found");
+      }
+
+      const userWallet = await WalletModel.findOne({
+        currency: card.currency,
+        user: ObjectId.createFromHexString(userId),
+      });
+
+      if (!userWallet) {
+        throw new NotFoundError(`User does not have a ${card.currency} wallet`);
+      }
+
+      if (userWallet.balance < amount) {
+        throw new BadRequestError("Insufficient balance");
+      }
+
+      const status = await this.fundVirtualCardOnMaplerad(cardId, amount);
+
+      if (status) {
+        await userWallet.updateOne({
+          balance: userWallet.balance - amount,
+        });
+
+        await VirtualCardModel.findByIdAndUpdate(card._id, {
+          balance: card.balance + amount,
+        });
+
+        const transaction = new VirtualCardTransaction();
+
+        transaction.card = card._id;
+        transaction.user = user._id;
+        transaction.amount = amount;
+        transaction.currency = card.currency;
+        transaction.description = "Top up";
+        transaction.status = TransactionStatus.COMPLETED;
+
+        await VirtualCardTransactionModel.create(transaction);
+      }
+
+      return status;
+    } catch (error) {
+      logEvent("error", "Error funding virtual card", { error });
+
+      throw error;
+    }
   }
 
   async fundVirtualCardOnMaplerad(cardId: string, amount: number) {
@@ -418,6 +451,48 @@ class VirtualCardService {
         "Error funding virtual card:",
         error.response?.data || error.message
       );
+      throw error;
+    }
+  }
+
+  async getVirtualCardTransactions(getUserRecordsDto: GetUserRecordsDto) {
+    try {
+      const { userId, page = 1 } = getUserRecordsDto;
+
+      const numberOfRecordsPerPage = 10;
+
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      const cardTransactions = await VirtualCardTransactionModel.find(
+        { user: user._id },
+        null,
+        {
+          skip: (page - 1) * numberOfRecordsPerPage,
+          limit: numberOfRecordsPerPage,
+          sort: { createdAt: -1 },
+        }
+      );
+
+      const totalRecords = await VirtualCardTransactionModel.countDocuments({
+        user: user._id,
+      });
+
+      const totalPages = Math.ceil(totalRecords / numberOfRecordsPerPage);
+
+      return {
+        cardTransactions,
+        totalPages,
+        page,
+        totalRecords,
+        numberOfRecordsPerPage,
+      };
+    } catch (error) {
+      logEvent("error", "Error fetching virtual card transactions", { error });
+
       throw error;
     }
   }

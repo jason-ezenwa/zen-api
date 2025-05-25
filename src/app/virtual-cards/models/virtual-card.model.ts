@@ -18,6 +18,9 @@ export class VirtualCard {
   @prop({ required: true })
   public cardReference: string;
 
+  /**
+   * cardId is the id of the card in maplerad
+   */
   @prop({ required: true })
   public cardId: string;
 
