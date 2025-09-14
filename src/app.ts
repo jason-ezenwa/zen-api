@@ -4,6 +4,18 @@ import cors from "cors";
 import config from "./config";
 import { job } from "./cron-job";
 import setupRoutes from "./routes";
+
+// Global error handlers to handle crashes
+process.on('unhandledRejection', (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1); // crash + restart
+});
+
+process.on('uncaughtException', (error) => {
+  console.error("Uncaught Exception:", error);
+  process.exit(1); // crash + restart
+});
+
 const app = express();
 
 app.use(

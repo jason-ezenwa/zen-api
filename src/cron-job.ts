@@ -17,6 +17,6 @@ export const job = new CronJob("0 */14 * * * *", async function () {
   } catch (error) {
     console.log("unable to perform cron job to prevent inactivity");
 
-    console.log(error);
+    console.error(error);
   }
 });
