@@ -66,7 +66,7 @@ class VirtualCardService {
 
         // decrement user's wallet balance by card creation fee
         await userCurrencyWallet.updateOne({
-          balance: userCurrencyWallet.balance - cardCreationFee.fee,
+          $inc: { balance: -cardCreationFee.fee },
         });
 
         return cardRequest;
@@ -398,11 +398,11 @@ class VirtualCardService {
 
       if (status) {
         await userWallet.updateOne({
-          balance: userWallet.balance - amount,
+          $inc: { balance: -amount },
         });
 
         await VirtualCardModel.findByIdAndUpdate(card._id, {
-          balance: card.balance + amount,
+          $inc: { balance: amount },
         });
 
         const transaction = new VirtualCardTransaction();

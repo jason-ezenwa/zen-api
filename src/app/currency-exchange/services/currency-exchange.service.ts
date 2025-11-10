@@ -30,13 +30,8 @@ interface MapleradQuoteData {
 }
 
 class CurrencyExchangeService {
-  public async getCurrencyExchangeMarginFromDb(): Promise<any> {
-    try {
-      const currencyExchangeMargin = await MarginModel.findOne();
-      return currencyExchangeMargin;
-    } catch (error) {
-      throw error;
-    }
+  public async getCurrencyExchangeMarginFromDb() {
+    return MarginModel.findOne();
   }
 
   public async generateFXQuoteFromMaplerad(
@@ -64,9 +59,14 @@ class CurrencyExchangeService {
 
       // inputting our margin
       const exchangeRateMargin = await this.getCurrencyExchangeMarginFromDb();
+
+      if (!exchangeRateMargin) {
+        throw new Error("Currency exchange margin not found");
+      }
+
       const { margin } = exchangeRateMargin;
-      const ratePercentageAmount =
-        parseFloat(margin) * parseFloat(quoteData.rate);
+
+      const ratePercentageAmount = margin * parseFloat(quoteData.rate);
 
       const exchangeRate = parseFloat(quoteData.rate) - ratePercentageAmount; // remove margin % of the exchange rate
       const targetAmount = amount * exchangeRate;
@@ -88,9 +88,7 @@ class CurrencyExchangeService {
     }
   }
 
-  public async exchangeCurrencyOnMaplerad(
-    quoteReference: string
-  ): Promise<any> {
+  public async exchangeCurrencyOnMaplerad(quoteReference: string) {
     try {
       const mapleradOptions = {
         method: "POST",
@@ -112,15 +110,15 @@ class CurrencyExchangeService {
         "Unable to process currency exchange, please try again later."
       );
     } catch (error: any) {
-      console.error(
-        "Error processing currency exchange:",
-        error.response?.data || error.message
-      );
+      logEvent("error", "Error processing currency exchange:", {
+        error,
+      });
+
       throw error;
     }
   }
 
-  async exchangeCurrency(userId: string, quoteReference: string): Promise<any> {
+  async exchangeCurrency(userId: string, quoteReference: string) {
     const redis = await redisClient;
 
     const fxQuoteKey = `fx_${quoteReference}`;
@@ -172,13 +170,13 @@ class CurrencyExchangeService {
       await this.exchangeCurrencyOnMaplerad(quoteReference);
 
       // TODO: implement exchange in wallets
-      sourceCurrencyWallet.balance -= sourceAmount;
+      await sourceCurrencyWallet.updateOne({
+        $inc: { balance: -sourceAmount },
+      });
 
-      targetCurrencyWallet.balance += targetAmount;
-
-      await sourceCurrencyWallet.save();
-
-      await targetCurrencyWallet.save();
+      await targetCurrencyWallet.updateOne({
+        $inc: { balance: targetAmount },
+      });
 
       const fxTransaction = new CurrencyExchange();
 

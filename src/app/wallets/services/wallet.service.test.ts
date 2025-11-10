@@ -200,6 +200,7 @@ describe("WalletService", () => {
         subTotal: depositAmount,
         status: TransactionStatus.PENDING,
         save: jest.fn().mockResolvedValueOnce(true),
+        updateOne: jest.fn().mockResolvedValueOnce(true),
       };
 
       // Mock wallet
@@ -207,11 +208,15 @@ describe("WalletService", () => {
         _id: walletId,
         balance: 1000,
         save: jest.fn().mockResolvedValueOnce(true),
+        updateOne: jest.fn().mockResolvedValueOnce(true),
       };
 
       // Setup mocks
       jest.spyOn(DepositModel, "findOne").mockResolvedValueOnce(deposit as any);
       jest.spyOn(WalletModel, "findById").mockResolvedValueOnce(wallet as any);
+      jest
+        .spyOn(paystackService, "verifyTransaction")
+        .mockResolvedValueOnce(true);
       const result = await service.creditWalletFollowingDeposit(
         transactionReference
       );
@@ -229,12 +234,14 @@ describe("WalletService", () => {
       expect(WalletModel.findById).toHaveBeenCalledWith(walletId);
 
       // Verify wallet was updated with new balance
-      expect(wallet.balance).toBe(6000); // 1000 + 5000
-      expect(wallet.save).toHaveBeenCalled();
+      expect(wallet.updateOne).toHaveBeenCalledWith({
+        $inc: { balance: depositAmount },
+      });
 
       // Verify deposit status was updated
-      expect(deposit.status).toBe(TransactionStatus.COMPLETED);
-      expect(deposit.save).toHaveBeenCalled();
+      expect(deposit.updateOne).toHaveBeenCalledWith({
+        status: TransactionStatus.COMPLETED,
+      });
     });
 
     it("should return true if deposit is already completed", async () => {

@@ -166,13 +166,13 @@ export class WalletService {
         throw new NotFoundError("Wallet not found");
       }
 
-      wallet.balance += deposit.subTotal;
+      await wallet.updateOne({
+        $inc: { balance: deposit.subTotal },
+      });
 
-      await wallet.save();
-
-      deposit.status = TransactionStatus.COMPLETED;
-
-      await deposit.save();
+      await deposit.updateOne({
+        status: TransactionStatus.COMPLETED,
+      });
 
       logEvent("info", "Wallet credited successfully", {
         reference: transactionReference,

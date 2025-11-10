@@ -244,17 +244,21 @@ describe("VirtualCardService", () => {
       );
 
       expect(status).toBe(true);
+
+      // verify wallet balance was decremented
       expect(userWallet.updateOne).toHaveBeenCalledWith({
-        balance: userWallet.balance - amount,
+        $inc: { balance: -amount },
       });
 
+      // verify card balance was incremented
       expect(VirtualCardModel.findByIdAndUpdate).toHaveBeenCalledWith(
         card._id,
         {
-          balance: 100,
+          $inc: { balance: amount },
         }
       );
 
+      // verify transaction was created
       expect(VirtualCardTransactionModel.create).toHaveBeenCalledWith(
         transaction
       );
