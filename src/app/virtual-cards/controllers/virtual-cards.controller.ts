@@ -9,12 +9,14 @@ import {
   Req,
   QueryParam,
 } from "routing-controllers";
+import { Service } from "typedi";
 import { Request } from "express";
 import virtualCardsService from "../services/virtual-cards.service";
 import { logEvent } from "../../../utils";
 import { CreateVirtualCardDto } from "../../common/dtos/virtual-cards/create-virtual-card.dto";
 import { FundVirtualCardDto } from "../../common/dtos/virtual-cards/fund-virtual-card.dto";
 
+@Service()
 @JsonController("/virtual-cards")
 export class VirtualCardsController {
   @Post()

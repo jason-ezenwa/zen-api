@@ -1,4 +1,5 @@
 import { JsonController, Post, Req, Res } from "routing-controllers";
+import { Service } from "typedi";
 import { Request, Response } from "express";
 import webhookService from "./webhook.service";
 import { WalletService } from "../wallets/services/wallet.service";
@@ -38,6 +39,7 @@ const checkMapleradIPAddress = (requestIPAddress: string) => {
   return mapleradIPAddresses.includes(ipAddress);
 };
 
+@Service()
 @JsonController("/webhook")
 export class WebhookController {
   constructor(private readonly walletService: WalletService) {}

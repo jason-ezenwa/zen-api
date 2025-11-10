@@ -76,7 +76,7 @@ describe("AuthService", () => {
       const input = {
         firstName: "John",
         lastName: "Doe",
-        dateOfBirth: new Date(),
+        dateOfBirth: "2001-05-18T00:00:00.000Z",
         email: existingUser.email,
         password: "password123",
         phoneNumber: "+2347000000000",
@@ -101,7 +101,7 @@ describe("AuthService", () => {
       const input = {
         firstName: "John",
         lastName: "Doe",
-        dateOfBirth: new Date(),
+        dateOfBirth: "2001-05-18T00:00:00.000Z",
         email: "newuser@example.com",
         password: "password123",
         phoneNumber: "+2347000000000",

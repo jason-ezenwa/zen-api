@@ -2,7 +2,8 @@ import "reflect-metadata";
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import { useExpressServer } from "routing-controllers";
+import { useExpressServer, useContainer } from "routing-controllers";
+import { Container } from "typedi";
 import config from "./config";
 
 // Import all controllers
@@ -22,6 +23,9 @@ process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
   process.exit(1); // crash + restart
 });
+
+// Set up dependency injection container
+useContainer(Container);
 
 const app = express();
 

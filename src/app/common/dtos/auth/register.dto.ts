@@ -39,8 +39,7 @@ export class RegisterDto {
   phoneNumber: string;
 
   @IsDateString()
-  @Transform(({ value }) => new Date(value))
-  dateOfBirth: Date;
+  dateOfBirth: string;
 
   @IsString()
   bvn: string;

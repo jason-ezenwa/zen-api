@@ -1,19 +1,23 @@
 import { JsonController, Post, Body } from "routing-controllers";
-import AuthService from "../services/auth.service";
+import { Service } from "typedi";
+import { AuthService } from "../services/auth.service";
 import { RegisterDto } from "../../common/dtos/auth/register.dto";
 import { LoginDto } from "../../common/dtos/auth/login.dto";
 import { HttpCode } from "routing-controllers";
 
+@Service()
 @JsonController("/auth")
 export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
   @Post("/register")
   @HttpCode(201)
   async register(@Body() registerData: RegisterDto) {
-    return await AuthService.register(registerData);
+    return await this.authService.register(registerData);
   }
 
   @Post("/login")
   async login(@Body() loginData: LoginDto) {
-    return await AuthService.login(loginData);
+    return await this.authService.login(loginData);
   }
 }

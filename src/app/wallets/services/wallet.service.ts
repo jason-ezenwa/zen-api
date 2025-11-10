@@ -64,6 +64,8 @@ export class WalletService {
       throw new NotFoundError("Wallets not found");
     }
 
+    console.log({ wallet });
+
     return wallet;
   }
 
