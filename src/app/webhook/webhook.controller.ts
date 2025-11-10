@@ -1,3 +1,4 @@
+import { JsonController, Post, Req, Res } from "routing-controllers";
 import { Request, Response } from "express";
 import webhookService from "./webhook.service";
 import { WalletService } from "../wallets/services/wallet.service";
@@ -37,46 +38,37 @@ const checkMapleradIPAddress = (requestIPAddress: string) => {
   return mapleradIPAddresses.includes(ipAddress);
 };
 
-class WebhookController {
+@JsonController("/webhook")
+export class WebhookController {
   constructor(private readonly walletService: WalletService) {}
-  async handleWebhook(req: Request, res: Response) {
+
+  @Post()
+  async handleWebhook(@Req() req: Request, @Res() res: Response) {
     let requestIPAddress =
       (req.headers["x-real-ip"] as string) ||
       (req.headers["true-client-ip"] as string) ||
       (req.headers["x-forwarded-for"] as string);
 
-    try {
-      logEvent("info", "Webhook received", {
-        body: req.body,
-      });
+    logEvent("info", "Webhook received", {
+      body: req.body,
+    });
 
-      if (req.body.event === "issuing.created.successful") {
-        checkMapleradIPAddress(requestIPAddress);
-        webhookService.handleCardCreation(req);
-      }
-
-      if (req.body.event === "issuing.created.failed") {
-        checkMapleradIPAddress(requestIPAddress);
-        webhookService.handleCardCreationFailed(req);
-      }
-
-      if (req.body.event === "charge.success") {
-        await this.walletService.creditWalletFollowingDeposit(
-          req.body.data.reference
-        );
-      }
-
-      return res.status(200).send("Webhook received");
-    } catch (error) {
-      logEvent("error", "Error handling webhook", { error });
-
-      if (error instanceof UnauthorizedError) {
-        return res.status(401).json({ error: error.message });
-      }
-
-      return res.status(500).json({ error: "Internal server error" });
+    if (req.body.event === "issuing.created.successful") {
+      checkMapleradIPAddress(requestIPAddress);
+      webhookService.handleCardCreation(req);
     }
+
+    if (req.body.event === "issuing.created.failed") {
+      checkMapleradIPAddress(requestIPAddress);
+      webhookService.handleCardCreationFailed(req);
+    }
+
+    if (req.body.event === "charge.success") {
+      await this.walletService.creditWalletFollowingDeposit(
+        req.body.data.reference
+      );
+    }
+
+    return res.status(200).send("Webhook received");
   }
 }
-
-export default new WebhookController(new WalletService(new PaystackService()));

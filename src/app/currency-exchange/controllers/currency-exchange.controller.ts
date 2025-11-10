@@ -1,119 +1,84 @@
-import { Request, Response } from 'express';
-import redisClient from '../../redisClient';
-import { NotFoundError, BadRequestError } from '../../errors';
-import currencyExchangeService from '../services/currency-exchange.service';
-import { validateWithSchema } from "../../../utils";
-import { getUserRecordsSchema } from "../../common/dtos";
+import {
+  JsonController,
+  Post,
+  Get,
+  Authorized,
+  Body,
+  Req,
+  QueryParam,
+} from "routing-controllers";
+import { Request } from "express";
+import redisClient from "../../redisClient";
+import currencyExchangeService from "../services/currency-exchange.service";
+import { GenerateFXQuoteDto } from "../../common/dtos/fx/generate-quote.dto";
+import { ExchangeCurrencyDto } from "../../common/dtos/fx/exchange-currency.dto";
 
-class CurrencyExchangeController {
-  async generateFXQuote(req: any, res: any) {
-    const { sourceCurrency, targetCurrency, amount } = req.body;
-
-    if (!sourceCurrency) {
-      return res.status(400).json({ error: "sourceCurrency is required." });
-      return;
-    }
-
-    if (!targetCurrency) {
-      return res.status(400).json({ error: "targetCurrency is required." });
-      return;
-    }
-
-    if (!amount || isNaN(amount) || amount <= 0) {
-      return res.status(400).json({ error: "Valid amount is required." });
-      return;
-    }
-
-    try {
-      const { sourceAmount, targetAmount, exchangeRate, quoteReference } =
-        await currencyExchangeService.generateFXQuoteFromMaplerad(
-          sourceCurrency,
-          targetCurrency,
-          amount
-        );
-
-      const fxQuote = JSON.stringify({
-        sourceAmount,
-        sourceCurrency,
-        targetAmount,
-        targetCurrency,
-        reference: quoteReference,
-        exchangeRate,
-      });
-      const fxQuoteKey = `fx_${quoteReference}`;
-      const redis = await redisClient;
-      await redis.set(fxQuoteKey, fxQuote);
-      await redis.expire(fxQuoteKey, 180);
-
-      return res.status(200).json({
-        message: "FX quote generated successfully",
-        quoteReference,
-        sourceAmount,
-        targetAmount,
-        exchangeRate,
-      });
-    } catch (error) {
-      res.status(500).json({ error: "Internal Server Error" });
-    }
-  }
-
-  async exchangeCurrency(req: Request, res: Response) {
-    try {
-      const userId = req.user.id;
-
-      const { quoteReference } = req.body;
-
-      const fxTransaction = await currencyExchangeService.exchangeCurrency(
-        userId,
-        quoteReference
+@JsonController("/fx")
+export class CurrencyExchangeController {
+  @Post("/quote")
+  async generateFXQuote(@Body() quoteDto: GenerateFXQuoteDto) {
+    const { sourceAmount, targetAmount, exchangeRate, quoteReference } =
+      await currencyExchangeService.generateFXQuoteFromMaplerad(
+        quoteDto.sourceCurrency,
+        quoteDto.targetCurrency,
+        quoteDto.amount
       );
 
-      if (fxTransaction) {
-        return res
-          .status(200)
-          .json({ message: "Currency exchanged successfully", fxTransaction });
-      } else {
-        throw new Error(
-          "Unable to process currency exchange, please try again later."
-        );
-      }
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        return res.status(404).json({ error: error.message });
-      }
+    const fxQuote = JSON.stringify({
+      sourceAmount,
+      sourceCurrency: quoteDto.sourceCurrency,
+      targetAmount,
+      targetCurrency: quoteDto.targetCurrency,
+      reference: quoteReference,
+      exchangeRate,
+    });
+    const fxQuoteKey = `fx_${quoteReference}`;
+    const redis = await redisClient;
+    await redis.set(fxQuoteKey, fxQuote);
+    await redis.expire(fxQuoteKey, 180);
 
-      if (error instanceof BadRequestError) {
-        return res.status(400).json({ error: error.message });
-      }
-
-      console.log("Error exchanging currency:", error);
-
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
+    return {
+      message: "FX quote generated successfully",
+      quoteReference,
+      sourceAmount,
+      targetAmount,
+      exchangeRate,
+    };
   }
 
-  async getMyFXTransactions(req: Request, res: Response) {
-    try {
-      const userId = req.user.id;
+  @Post("/exchange")
+  @Authorized()
+  async exchangeCurrency(
+    @Body() exchangeDto: ExchangeCurrencyDto,
+    @Req() req: Request
+  ) {
+    const userId = req.user.id;
+    const fxTransaction = await currencyExchangeService.exchangeCurrency(
+      userId,
+      exchangeDto.quoteReference
+    );
 
-      const { page = 1 } = req.query;
-
-      const dto = validateWithSchema(getUserRecordsSchema, {
-        userId,
-        page,
-      });
-
-      const result = await currencyExchangeService.getUserFXTransactions(dto);
-
-      return res.status(200).json(result);
-    } catch (error) {
-      if (error instanceof NotFoundError || error instanceof BadRequestError) {
-        return res.status(error.statusCode).json({ error: error.message });
-      }
-
-      return res.status(500).json({ error: "Internal Server Error" });
+    if (!fxTransaction) {
+      throw new Error(
+        "Unable to process currency exchange, please try again later."
+      );
     }
+
+    return { message: "Currency exchanged successfully", fxTransaction };
+  }
+
+  @Get("/transactions")
+  @Authorized()
+  async getMyFXTransactions(
+    @Req() req: Request,
+    @QueryParam("page") page?: number
+  ) {
+    const userId = req.user.id;
+    const dto = {
+      userId,
+      page: page || 1,
+    };
+    const result = await currencyExchangeService.getUserFXTransactions(dto);
+    return result;
   }
 }
-
-export default new CurrencyExchangeController();

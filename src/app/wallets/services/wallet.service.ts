@@ -2,13 +2,14 @@ import WalletModel from '../models/wallet.model'; // Adjust the path if necessar
 import UserModel  from '../../users/models/user.model'; // Adjust the path if necessary
 import { BadRequestError, NotFoundError } from '../../errors';
 import { ObjectId } from 'mongodb';
-import { DepositFundsDto } from "../dto/deposit-funds.dto";
+import { FundWalletDto } from "../../common/dtos/wallet/fund-wallet.dto";
 import { PaystackService } from "../../paystack/paystack.service";
 import { randomUUID } from "crypto";
 import DepositModel from "../models/deposit.model";
 import { logEvent } from "../../../utils";
 import { TransactionStatus } from "../../../types";
 import { GetUserRecordsDto } from "../../common/dtos";
+import { ALLOWED_CURRENCIES } from "../../../constants";
 export class WalletService {
   constructor(private readonly paystackService: PaystackService) {}
   async createWallet(userId: string, currency: string) {
@@ -16,8 +17,6 @@ export class WalletService {
     if (!user) {
       throw new NotFoundError("User not found");
     }
-
-    const allowedCurrencies = ["USD", "NGN", "GHS", "KES"];
 
     const existingCurrencyWallet = await WalletModel.findOne({
       user: user._id,
@@ -28,7 +27,7 @@ export class WalletService {
       throw new BadRequestError("Wallet already exists for specified currency");
     }
 
-    if (!allowedCurrencies.includes(currency)) {
+    if (!ALLOWED_CURRENCIES.includes(currency)) {
       throw new BadRequestError("Currency not supported");
     }
 
@@ -78,7 +77,7 @@ export class WalletService {
     return wallet;
   }
 
-  async fundWallet(depositFundsDto: DepositFundsDto) {
+  async fundWallet(depositFundsDto: FundWalletDto) {
     try {
       const wallet = await WalletModel.findOne({
         _id: depositFundsDto.walletId,

@@ -1,24 +1,19 @@
-import { Request, Response } from 'express';
-import AuthService from '../services/auth.service';
+import { JsonController, Post, Body } from "routing-controllers";
+import AuthService from "../services/auth.service";
+import { RegisterDto } from "../../common/dtos/auth/register.dto";
+import { LoginDto } from "../../common/dtos/auth/login.dto";
+import { HttpCode } from "routing-controllers";
 
-class AuthController {
-  public async register(req: Request, res: Response) {
-    try {
-      const result = await AuthService.register(req.body);
-      return res.status(201).json(result);
-    } catch (error: any) {
-      return res.status(400).json({ error: error.message });
-    }
+@JsonController("/auth")
+export class AuthController {
+  @Post("/register")
+  @HttpCode(201)
+  async register(@Body() registerData: RegisterDto) {
+    return await AuthService.register(registerData);
   }
 
-  public async login(req: Request, res: Response) {
-    try {
-      const result = await AuthService.login(req.body);
-      return res.status(200).json(result);
-    } catch (error: any) {
-      return res.status(400).json({ error: error.message });
-    }
+  @Post("/login")
+  async login(@Body() loginData: LoginDto) {
+    return await AuthService.login(loginData);
   }
 }
-
-export default new AuthController();
