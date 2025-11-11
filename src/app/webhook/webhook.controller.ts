@@ -66,6 +66,9 @@ export class WebhookController {
     }
 
     if (req.body.event === "charge.success") {
+      logEvent("info", "Credit wallet following deposit", {
+        reference: req.body.data.reference,
+      });
       await this.walletService.creditWalletFollowingDeposit(
         req.body.data.reference
       );

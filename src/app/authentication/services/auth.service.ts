@@ -2,7 +2,8 @@ import { Service } from "typedi";
 import { DocumentType } from "@typegoose/typegoose";
 import UserModel, { User } from "../../users/models/user.model";
 import mapleradUserAccountService from "../../users/services/maplerad-user-account.service";
-import walletService from "../../wallets/services/wallet.service";
+import { Container } from "typedi";
+import { WalletService } from "../../wallets/services/wallet.service";
 import { generateToken } from "../utils/jwt.util";
 import { BadRequestError } from "../../errors";
 
@@ -62,6 +63,7 @@ export class AuthService {
 
       await mapleradUserAccountService.createUserAccountOnMaplerad(user.id);
 
+      const walletService = Container.get(WalletService);
       await walletService.createDefaultWallets(user.id);
 
       const token = generateToken({

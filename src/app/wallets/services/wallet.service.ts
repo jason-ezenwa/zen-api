@@ -1,7 +1,8 @@
-import WalletModel from '../models/wallet.model'; // Adjust the path if necessary
-import UserModel  from '../../users/models/user.model'; // Adjust the path if necessary
-import { BadRequestError, NotFoundError } from '../../errors';
-import { ObjectId } from 'mongodb';
+import { Service } from "typedi";
+import WalletModel from "../models/wallet.model"; // Adjust the path if necessary
+import UserModel from "../../users/models/user.model"; // Adjust the path if necessary
+import { BadRequestError, NotFoundError } from "../../errors";
+import { ObjectId } from "mongodb";
 import { FundWalletDto } from "../../common/dtos/wallet/fund-wallet.dto";
 import { PaystackService } from "../../paystack/paystack.service";
 import { randomUUID } from "crypto";
@@ -10,6 +11,8 @@ import { logEvent } from "../../../utils";
 import { TransactionStatus } from "../../../types";
 import { GetUserRecordsDto } from "../../common/dtos";
 import { ALLOWED_CURRENCIES } from "../../../constants";
+
+@Service()
 export class WalletService {
   constructor(private readonly paystackService: PaystackService) {}
   async createWallet(userId: string, currency: string) {
@@ -57,16 +60,14 @@ export class WalletService {
   }
 
   async getWalletsByUserId(userId: string) {
-    const wallet = await WalletModel.find({
+    const wallets = await WalletModel.find({
       user: ObjectId.createFromHexString(userId),
     }).populate("user");
-    if (!wallet) {
+    if (!wallets || wallets.length === 0) {
       throw new NotFoundError("Wallets not found");
     }
 
-    console.log({ wallet });
-
-    return wallet;
+    return wallets;
   }
 
   async getWalletByWalletId(walletId: string) {
@@ -230,4 +231,4 @@ export class WalletService {
   }
 }
 
-export default new WalletService(new PaystackService());
+// Removed singleton export - now using dependency injection

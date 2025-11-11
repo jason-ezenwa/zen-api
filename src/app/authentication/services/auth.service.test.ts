@@ -1,7 +1,7 @@
 import UserModel from "../../users/models/user.model";
 import AuthService from "./auth.service";
 import mapleradUserAccountService from "../../users/services/maplerad-user-account.service";
-import walletService from "../../wallets/services/wallet.service";
+import { WalletService } from "../../wallets/services/wallet.service";
 
 describe("AuthService", () => {
   afterEach(() => {
@@ -121,7 +121,9 @@ describe("AuthService", () => {
         .spyOn(mapleradUserAccountService, "createUserAccountOnMaplerad")
         .mockResolvedValue(true);
 
-      jest.spyOn(walletService, "createDefaultWallets").mockResolvedValue([]);
+      jest
+        .spyOn(WalletService.prototype, "createDefaultWallets")
+        .mockResolvedValue([]);
       jest.spyOn(AuthService, "removeSensitiveData").mockResolvedValue({
         ...input,
         password: undefined,

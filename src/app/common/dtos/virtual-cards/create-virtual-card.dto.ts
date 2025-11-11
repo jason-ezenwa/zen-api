@@ -1,12 +1,13 @@
 import { IsString, IsIn, MinLength, MaxLength } from 'class-validator';
+import { ALLOWED_CARD_BRANDS } from "../../../../constants";
 
 export class CreateVirtualCardDto {
   @IsString()
-  @IsIn(['USD'])
+  @IsIn(["USD"])
   currency: string;
 
   @IsString()
-  @IsIn(['Visa', 'Mastercard'])
+  @IsIn(ALLOWED_CARD_BRANDS)
   brand: string;
 
   @IsString()

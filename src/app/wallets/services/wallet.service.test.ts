@@ -1,6 +1,6 @@
 import WalletModel from '../models/wallet.model';
 import UserModel from '../../users/models/user.model';
-import walletService, { WalletService } from "./wallet.service";
+import { WalletService } from "./wallet.service";
 import { NotFoundError } from "../../errors";
 import DepositModel from "../models/deposit.model";
 import { PaystackService } from "../../paystack/paystack.service";

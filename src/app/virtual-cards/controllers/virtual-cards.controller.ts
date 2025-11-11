@@ -45,6 +45,21 @@ export class VirtualCardsController {
     return { virtualCards };
   }
 
+  @Get("/my-transactions")
+  @Authorized()
+  async getMyVirtualCardTransactions(
+    @Req() req: Request,
+    @QueryParam("page") page?: number
+  ) {
+    const userId = req.user.id;
+    const dto = {
+      userId,
+      page: page || 1,
+    };
+    const result = await virtualCardsService.getVirtualCardTransactions(dto);
+    return result;
+  }
+
   @Get("/:cardId")
   @Authorized()
   async getVirtualCard(@Param("cardId") cardId: string) {
@@ -80,20 +95,5 @@ export class VirtualCardsController {
       fundCardDto.amount
     );
     return { success };
-  }
-
-  @Get("/transactions")
-  @Authorized()
-  async getMyVirtualCardTransactions(
-    @Req() req: Request,
-    @QueryParam("page") page?: number
-  ) {
-    const userId = req.user.id;
-    const dto = {
-      userId,
-      page: page || 1,
-    };
-    const result = await virtualCardsService.getVirtualCardTransactions(dto);
-    return result;
   }
 }

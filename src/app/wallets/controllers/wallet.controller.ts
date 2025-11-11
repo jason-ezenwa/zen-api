@@ -10,13 +10,14 @@ import {
 } from "routing-controllers";
 import { Service } from "typedi";
 import { Request } from "express";
-import WalletService from "../services/wallet.service";
+import { WalletService } from "../services/wallet.service";
 import { CreateWalletDto } from "../../common/dtos/wallet/create-wallet.dto";
 import { FundWalletDto } from "../../common/dtos/wallet/fund-wallet.dto";
 
 @Service()
 @JsonController("/wallets")
 export class WalletController {
+  constructor(private readonly walletService: WalletService) {}
   @Post()
   @Authorized()
   async createWallet(
@@ -24,40 +25,36 @@ export class WalletController {
     @Req() req: Request
   ) {
     const userId = req.user.id;
-    const wallet = await WalletService.createWallet(
+    const wallet = await this.walletService.createWallet(
       userId,
       createWalletDto.currency
     );
-    return wallet;
+    const obj = wallet.toObject();
+    return {
+      ...obj,
+      _id: obj._id.toString(),
+      user: obj.user?.toString() || obj.user,
+    };
   }
 
   @Get()
   @Authorized()
   async getWallets(@Req() req: Request) {
     const userId = req.user.id;
-    const wallets = await WalletService.getWalletsByUserId(userId);
-    return { wallets };
+    const wallets = await this.walletService.getWalletsByUserId(userId);
+    return {
+      wallets: wallets.map((wallet) => {
+        const obj = wallet.toObject();
+        return {
+          ...obj,
+          _id: obj._id.toString(),
+          user: obj.user?.toString() || obj.user,
+        };
+      }),
+    };
   }
 
-  @Get("/:walletId")
-  @Authorized()
-  async getWallet(@Param("walletId") walletId: string) {
-    const wallet = await WalletService.getWalletByWalletId(walletId);
-    return { wallet };
-  }
-
-  @Post("/:walletId/fund")
-  @Authorized()
-  async fundWallet(
-    @Param("walletId") walletId: string,
-    @Body() fundWalletDto: FundWalletDto
-  ) {
-    const dto = { ...fundWalletDto, walletId };
-    const { paymentLink, depositId } = await WalletService.fundWallet(dto);
-    return { message: "Initialising deposit", paymentLink, depositId };
-  }
-
-  @Get("/deposits")
+  @Get("/my-deposits")
   @Authorized()
   async getMyDeposits(@Req() req: Request, @QueryParam("page") page?: number) {
     const userId = req.user.id;
@@ -65,7 +62,40 @@ export class WalletController {
       userId,
       page: page || 1,
     };
-    const result = await WalletService.getUserDeposits(dto);
-    return result;
+    const result = await this.walletService.getUserDeposits(dto);
+    return {
+      ...result,
+      deposits: result.deposits.map((deposit) => {
+        const obj = deposit.toObject();
+        return {
+          ...obj,
+          _id: obj._id.toString(),
+          user: obj.user?.toString() || obj.user,
+        };
+      }),
+    };
+  }
+
+  @Get("/:walletId")
+  @Authorized()
+  async getWallet(@Param("walletId") walletId: string) {
+    const wallet = await this.walletService.getWalletByWalletId(walletId);
+    const obj = wallet.toObject();
+    return {
+      wallet: {
+        ...obj,
+        _id: obj._id.toString(),
+        user: obj.user?.toString() || obj.user,
+      },
+    };
+  }
+
+  @Post("/fund")
+  @Authorized()
+  async fundWalletByBody(@Body() fundWalletDto: FundWalletDto) {
+    const { paymentLink, depositId } = await this.walletService.fundWallet(
+      fundWalletDto
+    );
+    return { message: "Initialising deposit", paymentLink, depositId };
   }
 }
