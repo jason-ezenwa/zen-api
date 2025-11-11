@@ -32,7 +32,12 @@ export class VirtualCardsController {
       createCardDto.brand,
       createCardDto.cardPin
     );
-    return virtualCardRequest;
+    const obj = virtualCardRequest.toObject();
+    return {
+      ...obj,
+      _id: obj._id.toString(),
+      user: obj.user?.toString() || obj.user,
+    };
   }
 
   @Get()
@@ -42,7 +47,16 @@ export class VirtualCardsController {
     const virtualCards = await virtualCardsService.getVirtualCardsForUser(
       userId
     );
-    return { virtualCards };
+    return {
+      virtualCards: virtualCards.map((virtualCard) => {
+        const obj = virtualCard.toObject();
+        return {
+          ...obj,
+          _id: obj._id.toString(),
+          user: obj.user?.toString() || obj.user,
+        };
+      }),
+    };
   }
 
   @Get("/my-transactions")
@@ -57,28 +71,65 @@ export class VirtualCardsController {
       page: page || 1,
     };
     const result = await virtualCardsService.getVirtualCardTransactions(dto);
-    return result;
+    return {
+      ...result,
+      cardTransactions: result.cardTransactions.map((transaction) => {
+        const obj = transaction.toObject();
+        return {
+          ...obj,
+          _id: obj._id.toString(),
+          user: obj.user?.toString() || obj.user,
+        };
+      }),
+    };
   }
 
   @Get("/:cardId")
   @Authorized()
   async getVirtualCard(@Param("cardId") cardId: string) {
     const virtualCard = await virtualCardsService.getVirtualCard(cardId);
-    return { virtualCard };
+    const obj = virtualCard.toObject();
+    return {
+      virtualCard: {
+        ...obj,
+        _id: obj._id.toString(),
+        user: obj.user?.toString() || obj.user,
+      },
+    };
   }
 
   @Put("/:cardId/freeze")
   @Authorized()
   async freezeVirtualCard(@Param("cardId") cardId: string) {
     const virtualCard = await virtualCardsService.freezeVirtualCard(cardId);
-    return { virtualCard };
+    if (!virtualCard) {
+      throw new Error("Unable to freeze virtual card");
+    }
+    const obj = virtualCard.toObject();
+    return {
+      virtualCard: {
+        ...obj,
+        _id: obj._id.toString(),
+        user: obj.user?.toString() || obj.user,
+      },
+    };
   }
 
   @Put("/:cardId/unfreeze")
   @Authorized()
   async unfreezeVirtualCard(@Param("cardId") cardId: string) {
     const virtualCard = await virtualCardsService.unfreezeVirtualCard(cardId);
-    return { virtualCard };
+    if (!virtualCard) {
+      throw new Error("Unable to unfreeze virtual card");
+    }
+    const obj = virtualCard.toObject();
+    return {
+      virtualCard: {
+        ...obj,
+        _id: obj._id.toString(),
+        user: obj.user?.toString() || obj.user,
+      },
+    };
   }
 
   @Post("/:cardId/fund")

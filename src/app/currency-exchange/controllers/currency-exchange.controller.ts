@@ -66,7 +66,15 @@ export class CurrencyExchangeController {
       );
     }
 
-    return { message: "Currency exchanged successfully", fxTransaction };
+    const obj = fxTransaction.toObject();
+    return {
+      message: "Currency exchanged successfully",
+      fxTransaction: {
+        ...obj,
+        _id: obj._id.toString(),
+        user: obj.user?.toString() || obj.user,
+      },
+    };
   }
 
   @Get("/transactions")
@@ -81,6 +89,16 @@ export class CurrencyExchangeController {
       page: page || 1,
     };
     const result = await currencyExchangeService.getUserFXTransactions(dto);
-    return result;
+    return {
+      ...result,
+      fxTransactions: result.fxTransactions.map((transaction) => {
+        const obj = transaction.toObject();
+        return {
+          ...obj,
+          _id: obj._id.toString(),
+          user: obj.user?.toString() || obj.user,
+        };
+      }),
+    };
   }
 }

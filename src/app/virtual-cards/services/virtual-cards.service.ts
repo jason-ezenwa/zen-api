@@ -168,7 +168,7 @@ class VirtualCardService {
         throw new NotFoundError("Virtual card not found");
       }
 
-      virtualCard;
+      return virtualCard;
     } catch (error: any) {
       console.error("Error fetching virtual card:", error.message);
       throw error;
