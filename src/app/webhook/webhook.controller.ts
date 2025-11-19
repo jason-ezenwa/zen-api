@@ -61,7 +61,7 @@ export class WebhookController {
     });
 
     if (req.body.event === "issuing.created.successful") {
-      //checkMapleradIPAddress(requestIPAddress);
+      checkMapleradIPAddress(requestIPAddress);
       webhookService.handleCardCreation(req);
     }
 
