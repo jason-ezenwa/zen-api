@@ -1,7 +1,7 @@
 import UserModel from "../../users/models/user.model";
 import AuthService from "./auth.service";
 import mapleradUserAccountService from "../../users/services/maplerad-user-account.service";
-import walletService from "../../wallets/services/wallet.service";
+import { WalletService } from "../../wallets/services/wallet.service";
 
 describe("AuthService", () => {
   afterEach(() => {
@@ -76,7 +76,7 @@ describe("AuthService", () => {
       const input = {
         firstName: "John",
         lastName: "Doe",
-        dateOfBirth: new Date(),
+        dateOfBirth: "2001-05-18T00:00:00.000Z",
         email: existingUser.email,
         password: "password123",
         phoneNumber: "+2347000000000",
@@ -101,7 +101,7 @@ describe("AuthService", () => {
       const input = {
         firstName: "John",
         lastName: "Doe",
-        dateOfBirth: new Date(),
+        dateOfBirth: "2001-05-18T00:00:00.000Z",
         email: "newuser@example.com",
         password: "password123",
         phoneNumber: "+2347000000000",
@@ -121,7 +121,9 @@ describe("AuthService", () => {
         .spyOn(mapleradUserAccountService, "createUserAccountOnMaplerad")
         .mockResolvedValue(true);
 
-      jest.spyOn(walletService, "createDefaultWallets").mockResolvedValue([]);
+      jest
+        .spyOn(WalletService.prototype, "createDefaultWallets")
+        .mockResolvedValue([]);
       jest.spyOn(AuthService, "removeSensitiveData").mockResolvedValue({
         ...input,
         password: undefined,
@@ -138,9 +140,10 @@ describe("AuthService", () => {
 
       expect(result.token).toBeDefined();
 
-      expect(userCreateSpy).toHaveBeenCalledWith(
-        expect.objectContaining(input)
-      );
+      expect(userCreateSpy).toHaveBeenCalledWith({
+        ...input,
+        dateOfBirth: new Date(input.dateOfBirth),
+      });
     });
   });
 });

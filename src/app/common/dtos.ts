@@ -1,8 +1,13 @@
-import { z } from "zod";
+import { IsString, IsOptional, IsNumber, Min } from "class-validator";
+import { Type } from "class-transformer";
 
-export const getUserRecordsSchema = z.object({
-  userId: z.string(),
-  page: z.coerce.number().optional(),
-});
+export class GetUserRecordsDto {
+  @IsString()
+  userId: string;
 
-export type GetUserRecordsDto = z.infer<typeof getUserRecordsSchema>;
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  page?: number = 1;
+}

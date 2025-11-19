@@ -1,169 +1,151 @@
-import { Request, Response } from "express";
+import {
+  JsonController,
+  Post,
+  Get,
+  Authorized,
+  Body,
+  Param,
+  Req,
+  QueryParam,
+  HttpCode,
+  Patch,
+} from "routing-controllers";
+import { Service } from "typedi";
+import { Request } from "express";
 import virtualCardsService from "../services/virtual-cards.service";
-import { BadRequestError, NotFoundError } from "../../errors";
-import { logEvent, validateWithSchema } from "../../../utils";
-import { getUserRecordsSchema } from "../../common/dtos";
+import { CreateVirtualCardDto } from "../../common/dtos/virtual-cards/create-virtual-card.dto";
+import { FundVirtualCardDto } from "../../common/dtos/virtual-cards/fund-virtual-card.dto";
 
-class VirtualCardsController {
-  async createVirtualCard(req: Request, res: Response) {
-    try {
-      const userId = req.user.id;
-      const { currency, brand, cardPin } = req.body;
-
-      if (!currency || !brand || !cardPin) {
-        return res
-          .status(400)
-          .json({ error: "currency, brand and cardPin are required." });
-      }
-
-      if (currency !== "USD") {
-        return res
-          .status(400)
-          .json({ error: "Only USD currency is supported." });
-      }
-
-      const virtualCardRequest = await virtualCardsService.createVirtualCard(
-        userId,
-        currency,
-        brand,
-        cardPin
-      );
-
-      return res.status(201).json(virtualCardRequest);
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        return res.status(404).json({ error: error.message });
-      }
-
-      logEvent("error", "Error creating virtual card", { error });
-
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
+@Service()
+@JsonController("/virtual-cards")
+export class VirtualCardsController {
+  @Post()
+  @HttpCode(201)
+  @Authorized()
+  async createVirtualCard(
+    @Body() createCardDto: CreateVirtualCardDto,
+    @Req() req: Request
+  ) {
+    const userId = req.user.id;
+    const virtualCardRequest = await virtualCardsService.createVirtualCard(
+      userId,
+      createCardDto.currency,
+      createCardDto.brand,
+      createCardDto.cardPin
+    );
+    const obj = virtualCardRequest.toObject();
+    return {
+      ...obj,
+      _id: obj._id.toString(),
+      user: obj.user?.toString() || obj.user,
+    };
   }
 
-  async getVirtualCardsForUser(req: Request, res: Response) {
-    try {
-      const userId = req.user.id;
-
-      const virtualCards = await virtualCardsService.getVirtualCardsForUser(
-        userId
-      );
-
-      return res.status(200).json({ virtualCards });
-    } catch (error) {
-      logEvent("error", "Error getting virtual cards for user", { error });
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
+  @Get()
+  @Authorized()
+  async getVirtualCardsForUser(@Req() req: Request) {
+    const userId = req.user.id;
+    const virtualCards = await virtualCardsService.getVirtualCardsForUser(
+      userId
+    );
+    return {
+      virtualCards: virtualCards.map((virtualCard) => {
+        const obj = virtualCard.toObject();
+        return {
+          ...obj,
+          _id: obj._id.toString(),
+          user: obj.user?.toString() || obj.user,
+        };
+      }),
+    };
   }
 
-  async getVirtualCard(req: Request, res: Response) {
-    try {
-      const cardId = req.params.cardId;
-
-      const virtualCard = await virtualCardsService.getVirtualCard(cardId);
-
-      return res.status(200).json({ virtualCard });
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        return res.status(404).json({ error: error.message });
-      }
-
-      logEvent("error", "Error getting virtual card", { error });
-
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
+  @Get("/my-transactions")
+  @Authorized()
+  async getMyVirtualCardTransactions(
+    @Req() req: Request,
+    @QueryParam("page") page?: number
+  ) {
+    const userId = req.user.id;
+    const dto = {
+      userId,
+      page: page || 1,
+    };
+    const result = await virtualCardsService.getVirtualCardTransactions(dto);
+    return {
+      ...result,
+      cardTransactions: result.cardTransactions.map((transaction) => {
+        const obj = transaction.toObject();
+        return {
+          ...obj,
+          _id: obj._id.toString(),
+          user: obj.user?.toString() || obj.user,
+        };
+      }),
+    };
   }
 
-  async freezeVirtualCard(req: Request, res: Response) {
-    try {
-      const cardId = req.params.cardId;
-
-      const virtualCard = await virtualCardsService.freezeVirtualCard(cardId);
-
-      return res.status(200).json({ virtualCard });
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        return res.status(404).json({ error: error.message });
-      }
-
-      logEvent("error", "Error freezing virtual card", { error });
-
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
+  @Get("/:cardId")
+  @Authorized()
+  async getVirtualCard(@Param("cardId") cardId: string) {
+    const virtualCard = await virtualCardsService.getVirtualCard(cardId);
+    const obj = virtualCard.toObject();
+    return {
+      virtualCard: {
+        ...obj,
+        _id: obj._id.toString(),
+        user: obj.user?.toString() || obj.user,
+      },
+    };
   }
 
-  async unfreezeVirtualCard(req: Request, res: Response) {
-    try {
-      const cardId = req.params.cardId;
-
-      const virtualCard = await virtualCardsService.unfreezeVirtualCard(cardId);
-
-      return res.status(200).json({ virtualCard });
-    } catch (error) {
-      if (error instanceof NotFoundError) {
-        return res.status(404).json({ error: error.message });
-      }
-
-      logEvent("error", "Error unfreezing virtual card", { error });
-
-      return res.status(500).json({ error: "Internal Server Error" });
+  @Patch("/:cardId/freeze")
+  @Authorized()
+  async freezeVirtualCard(@Param("cardId") cardId: string) {
+    const virtualCard = await virtualCardsService.freezeVirtualCard(cardId);
+    if (!virtualCard) {
+      throw new Error("Unable to freeze virtual card");
     }
+    const obj = virtualCard.toObject();
+    return {
+      virtualCard: {
+        ...obj,
+        _id: obj._id.toString(),
+        user: obj.user?.toString() || obj.user,
+      },
+    };
   }
 
-  async fundVirtualCard(req: Request, res: Response) {
-    try {
-      const userId = req.user.id;
-
-      const cardId = req.params.cardId;
-
-      const { amount } = req.body;
-
-      if (!amount) {
-        return res.status(400).json({ error: "amount is required." });
-      }
-
-      const success = await virtualCardsService.fundVirtualCard(
-        userId,
-        cardId,
-        amount
-      );
-
-      return res.status(200).json({ success });
-    } catch (error) {
-      if (error instanceof NotFoundError || error instanceof BadRequestError) {
-        return res.status(error.statusCode).json({ error: error.message });
-      }
-
-      logEvent("error", "Error funding virtual card", { error });
-
-      return res.status(500).json({ error: "Internal Server Error" });
+  @Patch("/:cardId/unfreeze")
+  @Authorized()
+  async unfreezeVirtualCard(@Param("cardId") cardId: string) {
+    const virtualCard = await virtualCardsService.unfreezeVirtualCard(cardId);
+    if (!virtualCard) {
+      throw new Error("Unable to unfreeze virtual card");
     }
+    const obj = virtualCard.toObject();
+    return {
+      virtualCard: {
+        ...obj,
+        _id: obj._id.toString(),
+        user: obj.user?.toString() || obj.user,
+      },
+    };
   }
 
-  async getMyVirtualCardTransactions(req: Request, res: Response) {
-    try {
-      const userId = req.user.id;
-
-      const { page = 1 } = req.query;
-
-      const dto = validateWithSchema(getUserRecordsSchema, {
-        userId,
-        page,
-      });
-
-      const result = await virtualCardsService.getVirtualCardTransactions(dto);
-
-      return res.status(200).json(result);
-    } catch (error) {
-      logEvent("error", "Error getting virtual card transactions", { error });
-
-      if (error instanceof NotFoundError || error instanceof BadRequestError) {
-        return res.status(error.statusCode).json({ error: error.message });
-      }
-
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
+  @Post("/:cardId/fund")
+  @Authorized()
+  async fundVirtualCard(
+    @Param("cardId") cardId: string,
+    @Body() fundCardDto: FundVirtualCardDto,
+    @Req() req: Request
+  ) {
+    const userId = req.user.id;
+    const success = await virtualCardsService.fundVirtualCard(
+      userId,
+      cardId,
+      fundCardDto.amount
+    );
+    return { success };
   }
 }
-
-export default new VirtualCardsController();

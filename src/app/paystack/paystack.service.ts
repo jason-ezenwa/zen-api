@@ -1,8 +1,10 @@
+import { Service } from "typedi";
 import axios from "axios";
 import { logEvent } from "../../utils";
 import { NotFoundError, UnprocessableContentError } from "../errors";
 import { BadRequestError } from "../errors";
 
+@Service()
 export class PaystackService {
   constructor() {}
 

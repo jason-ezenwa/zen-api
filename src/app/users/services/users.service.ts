@@ -1,10 +1,12 @@
+import { Service } from "typedi";
 import { logEvent } from "../../../utils";
 import { AuthService } from "../../authentication/services/auth.service";
 import { NotFoundError } from "../../errors";
 import UserModel from "../models/user.model";
 
+@Service()
 export class UsersService {
-  constructor(private AuthService: AuthService) {}
+  constructor(private authService: AuthService) {}
 
   async getUserById(id: string) {
     try {
@@ -15,7 +17,7 @@ export class UsersService {
       }
 
       const userWithoutSensitiveData =
-        await this.AuthService.removeSensitiveData(user);
+        await this.authService.removeSensitiveData(user);
 
       return userWithoutSensitiveData;
     } catch (error: any) {

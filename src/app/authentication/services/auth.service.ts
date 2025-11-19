@@ -1,13 +1,16 @@
+import { Service } from "typedi";
 import { DocumentType } from "@typegoose/typegoose";
 import UserModel, { User } from "../../users/models/user.model";
 import mapleradUserAccountService from "../../users/services/maplerad-user-account.service";
-import walletService from "../../wallets/services/wallet.service";
+import { Container } from "typedi";
+import { WalletService } from "../../wallets/services/wallet.service";
 import { generateToken } from "../utils/jwt.util";
+import { BadRequestError } from "../../errors";
 
 interface RegisterInput {
   firstName: string;
   lastName: string;
-  dateOfBirth: Date;
+  dateOfBirth: string;
   email: string;
   password: string;
   bvn: string;
@@ -26,6 +29,7 @@ interface LoginInput {
   password: string;
 }
 
+@Service()
 export class AuthService {
   public async register(input: RegisterInput) {
     try {
@@ -43,7 +47,7 @@ export class AuthService {
       const existingUser = await UserModel.findOne({ email });
 
       if (existingUser) {
-        throw new Error("User already exists");
+        throw new BadRequestError("User already exists");
       }
 
       const user = await UserModel.create({
@@ -53,12 +57,13 @@ export class AuthService {
         password,
         phoneNumber,
         address,
-        dateOfBirth,
+        dateOfBirth: new Date(dateOfBirth),
         bvn,
       });
 
       await mapleradUserAccountService.createUserAccountOnMaplerad(user.id);
 
+      const walletService = Container.get(WalletService);
       await walletService.createDefaultWallets(user.id);
 
       const token = generateToken({
@@ -84,7 +89,7 @@ export class AuthService {
     const user = await UserModel.findOne({ email });
 
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw new BadRequestError("Invalid credentials");
     }
 
     const isMatch = await user.comparePassword(password);
