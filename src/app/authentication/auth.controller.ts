@@ -1,8 +1,8 @@
 import { JsonController, Post, Body } from "routing-controllers";
 import { Service } from "typedi";
-import { AuthService } from "../services/auth.service";
-import { RegisterDto } from "../../common/dtos/auth/register.dto";
-import { LoginDto } from "../../common/dtos/auth/login.dto";
+import { AuthService } from "./auth.service";
+import { RegisterDto } from "../common/dtos/auth/register.dto";
+import { LoginDto } from "../common/dtos/auth/login.dto";
 import { HttpCode } from "routing-controllers";
 
 @Service()

@@ -1,14 +1,14 @@
 import axios from "axios";
-import { NotFoundError } from "../../errors";
-import UserMapleRadAccountModel from "../../users/models/user-maplerad-account.model";
-import UserModel from "../../users/models/user.model";
-import VirtualCardRequestModel from "../models/virtual-card-request.model";
+import { NotFoundError } from "../errors";
+import UserMapleRadAccountModel from "../users/models/user-maplerad-account.model";
+import UserModel from "../users/models/user.model";
+import VirtualCardRequestModel from "./models/virtual-card-request.model";
 import VirtualCardService from "./virtual-cards.service";
 import virtualCardsService from "./virtual-cards.service";
-import VirtualCardModel from "../models/virtual-card.model";
-import WalletModel from "../../wallets/models/wallet.model";
-import USDVirtualCardFeesModel from "../../fees/models/usd-virtual-card-fees";
-import { VirtualCardTransactionModel } from "../models/virtual-card-transaction";
+import VirtualCardModel from "./models/virtual-card.model";
+import WalletModel from "../wallets/models/wallet.model";
+import USDVirtualCardFeesModel from "../fees/models/usd-virtual-card-fees";
+import { VirtualCardTransactionModel } from "./models/virtual-card-transaction";
 import { ObjectId } from "mongodb";
 
 jest.mock("axios");

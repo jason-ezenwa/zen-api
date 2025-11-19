@@ -1,11 +1,11 @@
 import { Service } from "typedi";
 import { DocumentType } from "@typegoose/typegoose";
-import UserModel, { User } from "../../users/models/user.model";
-import mapleradUserAccountService from "../../users/services/maplerad-user-account.service";
+import UserModel, { User } from "../users/models/user.model";
+import mapleradUserAccountService from "../users/services/maplerad-user-account.service";
 import { Container } from "typedi";
-import { WalletService } from "../../wallets/services/wallet.service";
-import { generateToken } from "../utils/jwt.util";
-import { BadRequestError } from "../../errors";
+import { WalletService } from "../wallets/wallet.service";
+import { generateToken } from "./utils/jwt.util";
+import { BadRequestError } from "../errors";
 
 interface RegisterInput {
   firstName: string;

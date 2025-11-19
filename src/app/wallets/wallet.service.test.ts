@@ -1,15 +1,15 @@
-import WalletModel from '../models/wallet.model';
-import UserModel from '../../users/models/user.model';
+import WalletModel from './models/wallet.model';
+import UserModel from '../users/models/user.model';
 import { WalletService } from "./wallet.service";
-import { NotFoundError } from "../../errors";
-import DepositModel from "../models/deposit.model";
-import { PaystackService } from "../../paystack/paystack.service";
-import { TransactionStatus } from "../../../types";
+import { NotFoundError } from "../errors";
+import DepositModel from "./models/deposit.model";
+import { PaystackService } from "../paystack/paystack.service";
+import { TransactionStatus } from "../../types";
 import { ObjectId } from "mongodb";
 import { createMock } from "@golevelup/ts-jest";
 
 // Mock the logEvent function
-jest.mock("../../../utils", () => ({
+jest.mock("../../utils", () => ({
   logEvent: jest.fn(),
 }));
 

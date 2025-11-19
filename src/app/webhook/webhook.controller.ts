@@ -8,7 +8,7 @@ import {
 import { Service } from "typedi";
 import { Request, Response } from "express";
 import webhookService from "./webhook.service";
-import { WalletService } from "../wallets/services/wallet.service";
+import { WalletService } from "../wallets/wallet.service";
 import { logEvent } from "../../utils";
 import { UnauthorizedError } from "../errors";
 

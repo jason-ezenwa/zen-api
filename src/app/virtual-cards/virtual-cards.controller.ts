@@ -12,9 +12,9 @@ import {
 } from "routing-controllers";
 import { Service } from "typedi";
 import { Request } from "express";
-import virtualCardsService from "../services/virtual-cards.service";
-import { CreateVirtualCardDto } from "../../common/dtos/virtual-cards/create-virtual-card.dto";
-import { FundVirtualCardDto } from "../../common/dtos/virtual-cards/fund-virtual-card.dto";
+import virtualCardsService from "./virtual-cards.service";
+import { CreateVirtualCardDto } from "../common/dtos/virtual-cards/create-virtual-card.dto";
+import { FundVirtualCardDto } from "../common/dtos/virtual-cards/fund-virtual-card.dto";
 
 @Service()
 @JsonController("/virtual-cards")

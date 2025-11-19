@@ -4,7 +4,7 @@ import VirtualCardModel, {
 	VirtualCard,
 } from "../virtual-cards/models/virtual-card.model";
 import { UnauthorizedError } from "../errors";
-import virtualCardService from "../virtual-cards/services/virtual-cards.service";
+import virtualCardService from "../virtual-cards/virtual-cards.service";
 class WebhookService {
   async handleCardCreation(req: Request) {
     try {

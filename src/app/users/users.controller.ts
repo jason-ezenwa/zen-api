@@ -1,8 +1,8 @@
 import { JsonController, Get, Authorized, Req } from "routing-controllers";
 import { Service } from "typedi";
 import { Request } from "express";
-import { UnauthorizedError } from "../../errors";
-import { UsersService } from "../services/users.service";
+import { UnauthorizedError } from "../errors";
+import { UsersService } from "./services/users.service";
 
 @Service()
 @JsonController("/users")

@@ -1,7 +1,7 @@
-import UserModel from "../../users/models/user.model";
+import UserModel from "../users/models/user.model";
 import AuthService from "./auth.service";
-import mapleradUserAccountService from "../../users/services/maplerad-user-account.service";
-import { WalletService } from "../../wallets/services/wallet.service";
+import mapleradUserAccountService from "../users/services/maplerad-user-account.service";
+import { WalletService } from "../wallets/wallet.service";
 
 describe("AuthService", () => {
   afterEach(() => {

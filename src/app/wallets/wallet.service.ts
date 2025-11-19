@@ -1,16 +1,16 @@
 import { Service } from "typedi";
-import WalletModel from "../models/wallet.model"; // Adjust the path if necessary
-import UserModel from "../../users/models/user.model"; // Adjust the path if necessary
-import { BadRequestError, NotFoundError } from "../../errors";
+import WalletModel from "./models/wallet.model"; // Adjust the path if necessary
+import UserModel from "../users/models/user.model"; // Adjust the path if necessary
+import { BadRequestError, NotFoundError } from "../errors";
 import { ObjectId } from "mongodb";
-import { FundWalletDto } from "../../common/dtos/wallet/fund-wallet.dto";
-import { PaystackService } from "../../paystack/paystack.service";
+import { FundWalletDto } from "../common/dtos/wallet/fund-wallet.dto";
+import { PaystackService } from "../paystack/paystack.service";
 import { randomUUID } from "crypto";
-import DepositModel from "../models/deposit.model";
-import { logEvent } from "../../../utils";
-import { TransactionStatus } from "../../../types";
-import { GetUserRecordsDto } from "../../common/dtos";
-import { ALLOWED_CURRENCIES } from "../../../constants";
+import DepositModel from "./models/deposit.model";
+import { logEvent } from "../../utils";
+import { TransactionStatus } from "../../types";
+import { GetUserRecordsDto } from "../common/dtos";
+import { ALLOWED_CURRENCIES } from "../../constants";
 
 @Service()
 export class WalletService {

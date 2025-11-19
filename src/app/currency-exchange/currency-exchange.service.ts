@@ -1,15 +1,15 @@
 import axios from 'axios';
-import { NotFoundError } from '../../errors';
-import redisClient from '../../redisClient';
-import WalletModel from '../../wallets/models/wallet.model';
-import UserModel from '../../users/models/user.model';
-import MarginModel from '../../margins/models/margin';
-import { GetUserRecordsDto } from "../../common/dtos";
-import { logEvent } from "../../../utils";
-import CurrencyExchangeModel from "../models/currency-exchange";
-import { CurrencyExchange } from "../models/currency-exchange";
-import { TransactionStatus } from "../../../types";
-import { GenerateFXQuoteDto } from "../../common/dtos/fx/generate-quote.dto";
+import { NotFoundError } from '../errors';
+import redisClient from '../redisClient';
+import WalletModel from '../wallets/models/wallet.model';
+import UserModel from '../users/models/user.model';
+import MarginModel from '../margins/models/margin';
+import { GetUserRecordsDto } from "../common/dtos";
+import { logEvent } from "../../utils";
+import CurrencyExchangeModel from "./models/currency-exchange";
+import { CurrencyExchange } from "./models/currency-exchange";
+import { TransactionStatus } from "../../types";
+import { GenerateFXQuoteDto } from "../common/dtos/fx/generate-quote.dto";
 
 interface FXQuoteResponse {
   sourceAmount: number;

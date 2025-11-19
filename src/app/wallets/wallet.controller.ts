@@ -10,9 +10,9 @@ import {
 } from "routing-controllers";
 import { Service } from "typedi";
 import { Request } from "express";
-import { WalletService } from "../services/wallet.service";
-import { CreateWalletDto } from "../../common/dtos/wallet/create-wallet.dto";
-import { FundWalletDto } from "../../common/dtos/wallet/fund-wallet.dto";
+import { WalletService } from "./wallet.service";
+import { CreateWalletDto } from "../common/dtos/wallet/create-wallet.dto";
+import { FundWalletDto } from "../common/dtos/wallet/fund-wallet.dto";
 
 @Service()
 @JsonController("/wallets")

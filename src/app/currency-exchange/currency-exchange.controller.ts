@@ -9,10 +9,9 @@ import {
 } from "routing-controllers";
 import { Service } from "typedi";
 import { Request } from "express";
-import redisClient from "../../redisClient";
-import currencyExchangeService from "../services/currency-exchange.service";
-import { GenerateFXQuoteDto } from "../../common/dtos/fx/generate-quote.dto";
-import { ExchangeCurrencyDto } from "../../common/dtos/fx/exchange-currency.dto";
+import currencyExchangeService from "./currency-exchange.service";
+import { GenerateFXQuoteDto } from "../common/dtos/fx/generate-quote.dto";
+import { ExchangeCurrencyDto } from "../common/dtos/fx/exchange-currency.dto";
 
 @Service()
 @JsonController("/fx")

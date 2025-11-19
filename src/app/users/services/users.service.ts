@@ -1,6 +1,6 @@
 import { Service } from "typedi";
 import { logEvent } from "../../../utils";
-import { AuthService } from "../../authentication/services/auth.service";
+import { AuthService } from "../../authentication/auth.service";
 import { NotFoundError } from "../../errors";
 import UserModel from "../models/user.model";
 

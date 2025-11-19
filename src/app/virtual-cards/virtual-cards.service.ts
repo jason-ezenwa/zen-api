@@ -1,19 +1,19 @@
 import axios from "axios";
-import { BadRequestError, NotFoundError } from "../../errors";
-import UserMapleRadAccountModel from "../../users/models/user-maplerad-account.model";
-import UserModel from "../../users/models/user.model";
-import VirtualCardRequestModel from "../models/virtual-card-request.model";
-import WalletModel from "../../wallets/models/wallet.model";
-import USDVirtualCardFeesModel from "../../fees/models/usd-virtual-card-fees";
-import VirtualCardModel, { VirtualCard } from "../models/virtual-card.model";
+import { BadRequestError, NotFoundError } from "../errors";
+import UserMapleRadAccountModel from "../users/models/user-maplerad-account.model";
+import UserModel from "../users/models/user.model";
+import VirtualCardRequestModel from "./models/virtual-card-request.model";
+import WalletModel from "../wallets/models/wallet.model";
+import USDVirtualCardFeesModel from "../fees/models/usd-virtual-card-fees";
+import VirtualCardModel, { VirtualCard } from "./models/virtual-card.model";
 import { ObjectId } from "mongodb";
-import { logEvent } from "../../../utils";
+import { logEvent } from "../../utils";
 import {
   VirtualCardTransaction,
   VirtualCardTransactionModel,
-} from "../models/virtual-card-transaction";
-import { GetUserRecordsDto } from "../../common/dtos";
-import { TransactionStatus } from "../../../types";
+} from "./models/virtual-card-transaction";
+import { GetUserRecordsDto } from "../common/dtos";
+import { TransactionStatus } from "../../types";
 
 class VirtualCardService {
   async createVirtualCard(
