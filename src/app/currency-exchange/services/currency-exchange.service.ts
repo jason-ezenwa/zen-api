@@ -9,6 +9,7 @@ import { logEvent } from "../../../utils";
 import CurrencyExchangeModel from "../models/currency-exchange";
 import { CurrencyExchange } from "../models/currency-exchange";
 import { TransactionStatus } from "../../../types";
+import { GenerateFXQuoteDto } from "../../common/dtos/fx/generate-quote.dto";
 
 interface FXQuoteResponse {
   sourceAmount: number;
@@ -86,6 +87,37 @@ class CurrencyExchangeService {
       );
       throw error;
     }
+  }
+
+  async generateFXQuote(quoteDto: GenerateFXQuoteDto) {
+    const { sourceAmount, targetAmount, exchangeRate, quoteReference } =
+      await this.generateFXQuoteFromMaplerad(
+        quoteDto.sourceCurrency,
+        quoteDto.targetCurrency,
+        quoteDto.amount
+      );
+
+    const fxQuote = JSON.stringify({
+      sourceAmount,
+      sourceCurrency: quoteDto.sourceCurrency,
+      targetAmount,
+      targetCurrency: quoteDto.targetCurrency,
+      reference: quoteReference,
+      exchangeRate,
+    });
+
+    const fxQuoteKey = `fx_${quoteReference}`;
+    const redis = await redisClient;
+    await redis.set(fxQuoteKey, fxQuote);
+    await redis.expire(fxQuoteKey, 180);
+
+    return {
+      message: "FX quote generated successfully",
+      quoteReference,
+      sourceAmount,
+      targetAmount,
+      exchangeRate,
+    };
   }
 
   public async exchangeCurrencyOnMaplerad(quoteReference: string) {

@@ -22,6 +22,12 @@ class VirtualCardService {
     brand: string,
     cardPin: string
   ) {
+    logEvent("info", "Creating virtual card", {
+      userId,
+      currency,
+      brand,
+    });
+
     try {
       const user = await UserModel.findById(userId);
 
@@ -120,6 +126,10 @@ class VirtualCardService {
         }
       );
 
+      logEvent("info", "Virtual card created on Maplerad", {
+        response: response.data.data,
+      });
+
       if (response.data.data) {
         const createdCardRequest = await VirtualCardRequestModel.create({
           user: userMapleRadAccount?.user,
@@ -131,10 +141,9 @@ class VirtualCardService {
 
       throw new Error("Unable to create virtual card on Maplerad");
     } catch (error: any) {
-      console.error(
-        "Error creating virtual card:",
-        error.response?.data || error.message
-      );
+        logEvent("error", "Error creating virtual card on Maplerad", {
+          error: error.response?.data || error.message,
+        });
       throw error;
     }
   }
@@ -153,7 +162,9 @@ class VirtualCardService {
 
       return virtualCards;
     } catch (error: any) {
-      console.error("Error fetching virtual cards:", error.message);
+      logEvent("error", "Error fetching virtual cards", {
+        error,
+      });
       throw error;
     }
   }
@@ -170,7 +181,9 @@ class VirtualCardService {
 
       return virtualCard;
     } catch (error: any) {
-      console.error("Error fetching virtual card:", error.message);
+      logEvent("error", "Error fetching virtual card", {
+        error,
+      });
       throw error;
     }
   }
@@ -194,10 +207,11 @@ class VirtualCardService {
 
       throw new Error("Unable to fetch virtual card details from Maplerad");
     } catch (error: any) {
-      console.error(
-        "Error fetching virtual card details:",
-        error.response?.data || error.message
-      );
+      logEvent("error", "Error fetching virtual card details", {
+        error: error.response?.data || error.message,
+        cardId,
+      });
+      
       throw error;
     }
   }

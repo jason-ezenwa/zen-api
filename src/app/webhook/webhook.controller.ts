@@ -1,9 +1,14 @@
-import { JsonController, Post, Req, Res } from "routing-controllers";
+import {
+  Authorized,
+  JsonController,
+  Post,
+  Req,
+  Res,
+} from "routing-controllers";
 import { Service } from "typedi";
 import { Request, Response } from "express";
 import webhookService from "./webhook.service";
 import { WalletService } from "../wallets/services/wallet.service";
-import { PaystackService } from "../paystack/paystack.service";
 import { logEvent } from "../../utils";
 import { UnauthorizedError } from "../errors";
 
@@ -56,7 +61,7 @@ export class WebhookController {
     });
 
     if (req.body.event === "issuing.created.successful") {
-      checkMapleradIPAddress(requestIPAddress);
+      //checkMapleradIPAddress(requestIPAddress);
       webhookService.handleCardCreation(req);
     }
 

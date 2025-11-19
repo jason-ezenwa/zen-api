@@ -33,7 +33,7 @@ export class WalletController {
     return {
       ...obj,
       _id: obj._id.toString(),
-      user: obj.user?.toString() || obj.user,
+      user: obj.user?.toString(),
     };
   }
 
@@ -42,15 +42,16 @@ export class WalletController {
   async getWallets(@Req() req: Request) {
     const userId = req.user.id;
     const wallets = await this.walletService.getWalletsByUserId(userId);
+    const transformedWallets = wallets.map((wallet) => {
+      const obj = wallet.toObject();
+      return {
+        ...obj,
+        _id: obj._id.toString(),
+        user: obj.user?.toString(),
+      };
+    });
     return {
-      wallets: wallets.map((wallet) => {
-        const obj = wallet.toObject();
-        return {
-          ...obj,
-          _id: obj._id.toString(),
-          user: obj.user?.toString() || obj.user,
-        };
-      }),
+      wallets: transformedWallets,
     };
   }
 
@@ -70,7 +71,7 @@ export class WalletController {
         return {
           ...obj,
           _id: obj._id.toString(),
-          user: obj.user?.toString() || obj.user,
+          user: obj.user?.toString(),
         };
       }),
     };

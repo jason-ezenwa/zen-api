@@ -2,17 +2,17 @@ import {
   JsonController,
   Post,
   Get,
-  Put,
   Authorized,
   Body,
   Param,
   Req,
   QueryParam,
+  HttpCode,
+  Patch,
 } from "routing-controllers";
 import { Service } from "typedi";
 import { Request } from "express";
 import virtualCardsService from "../services/virtual-cards.service";
-import { logEvent } from "../../../utils";
 import { CreateVirtualCardDto } from "../../common/dtos/virtual-cards/create-virtual-card.dto";
 import { FundVirtualCardDto } from "../../common/dtos/virtual-cards/fund-virtual-card.dto";
 
@@ -20,6 +20,7 @@ import { FundVirtualCardDto } from "../../common/dtos/virtual-cards/fund-virtual
 @JsonController("/virtual-cards")
 export class VirtualCardsController {
   @Post()
+  @HttpCode(201)
   @Authorized()
   async createVirtualCard(
     @Body() createCardDto: CreateVirtualCardDto,
@@ -98,7 +99,7 @@ export class VirtualCardsController {
     };
   }
 
-  @Put("/:cardId/freeze")
+  @Patch("/:cardId/freeze")
   @Authorized()
   async freezeVirtualCard(@Param("cardId") cardId: string) {
     const virtualCard = await virtualCardsService.freezeVirtualCard(cardId);
@@ -115,7 +116,7 @@ export class VirtualCardsController {
     };
   }
 
-  @Put("/:cardId/unfreeze")
+  @Patch("/:cardId/unfreeze")
   @Authorized()
   async unfreezeVirtualCard(@Param("cardId") cardId: string) {
     const virtualCard = await virtualCardsService.unfreezeVirtualCard(cardId);

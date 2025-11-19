@@ -62,9 +62,9 @@ describe("WalletService", () => {
 
       jest.spyOn(UserModel, "findById").mockResolvedValueOnce(null);
 
-      await expect(
-        walletService.createWallet(userId, currency)
-      ).rejects.toThrow(NotFoundError);
+      await expect(service.createWallet(userId, currency)).rejects.toThrow(
+        NotFoundError
+      );
     });
   });
 

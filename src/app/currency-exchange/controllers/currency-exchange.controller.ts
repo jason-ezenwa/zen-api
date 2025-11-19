@@ -17,54 +17,23 @@ import { ExchangeCurrencyDto } from "../../common/dtos/fx/exchange-currency.dto"
 @Service()
 @JsonController("/fx")
 export class CurrencyExchangeController {
-  @Post("/quote")
+  @Post("/generate-quote")
   async generateFXQuote(@Body() quoteDto: GenerateFXQuoteDto) {
-    const { sourceAmount, targetAmount, exchangeRate, quoteReference } =
-      await currencyExchangeService.generateFXQuoteFromMaplerad(
-        quoteDto.sourceCurrency,
-        quoteDto.targetCurrency,
-        quoteDto.amount
-      );
-
-    const fxQuote = JSON.stringify({
-      sourceAmount,
-      sourceCurrency: quoteDto.sourceCurrency,
-      targetAmount,
-      targetCurrency: quoteDto.targetCurrency,
-      reference: quoteReference,
-      exchangeRate,
-    });
-    const fxQuoteKey = `fx_${quoteReference}`;
-    const redis = await redisClient;
-    await redis.set(fxQuoteKey, fxQuote);
-    await redis.expire(fxQuoteKey, 180);
-
-    return {
-      message: "FX quote generated successfully",
-      quoteReference,
-      sourceAmount,
-      targetAmount,
-      exchangeRate,
-    };
+    return await currencyExchangeService.generateFXQuote(quoteDto);
   }
 
-  @Post("/exchange")
+  @Post("/exchange-currency")
   @Authorized()
   async exchangeCurrency(
     @Body() exchangeDto: ExchangeCurrencyDto,
     @Req() req: Request
   ) {
     const userId = req.user.id;
+
     const fxTransaction = await currencyExchangeService.exchangeCurrency(
       userId,
       exchangeDto.quoteReference
     );
-
-    if (!fxTransaction) {
-      throw new Error(
-        "Unable to process currency exchange, please try again later."
-      );
-    }
 
     const obj = fxTransaction.toObject();
     return {
@@ -77,7 +46,7 @@ export class CurrencyExchangeController {
     };
   }
 
-  @Get("/transactions")
+  @Get("/my-transactions")
   @Authorized()
   async getMyFXTransactions(
     @Req() req: Request,

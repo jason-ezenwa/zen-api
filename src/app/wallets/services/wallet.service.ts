@@ -230,5 +230,3 @@ export class WalletService {
     }
   }
 }
-
-// Removed singleton export - now using dependency injection

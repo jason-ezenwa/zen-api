@@ -140,9 +140,10 @@ describe("AuthService", () => {
 
       expect(result.token).toBeDefined();
 
-      expect(userCreateSpy).toHaveBeenCalledWith(
-        expect.objectContaining(input)
-      );
+      expect(userCreateSpy).toHaveBeenCalledWith({
+        ...input,
+        dateOfBirth: new Date(input.dateOfBirth),
+      });
     });
   });
 });
