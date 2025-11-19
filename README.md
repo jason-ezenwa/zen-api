@@ -20,8 +20,6 @@ To get started:
 - Install the dependencies `npm install`
 - Run the project `npm run dev`
 
-Documentation: https://documenter.getpostman.com/view/34554869/2sA3kaByuD
-
 Base URL: https://zen-api-68zd.onrender.com
 
 I will be updating this repo and the documentation as I continue to add new features 🙃
