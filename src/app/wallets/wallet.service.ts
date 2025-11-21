@@ -16,68 +16,125 @@ import { ALLOWED_CURRENCIES } from "../../constants";
 export class WalletService {
   constructor(private readonly paystackService: PaystackService) {}
   async createWallet(userId: string, currency: string) {
-    const user = await UserModel.findById(userId);
-    if (!user) {
-      throw new NotFoundError("User not found");
-    }
-
-    const existingCurrencyWallet = await WalletModel.findOne({
-      user: user._id,
+    logEvent("info", "Creating wallet", {
+      userId,
       currency,
     });
 
-    if (existingCurrencyWallet) {
-      throw new BadRequestError("Wallet already exists for specified currency");
+    try {
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      const existingCurrencyWallet = await WalletModel.findOne({
+        user: user._id,
+        currency,
+      });
+
+      if (existingCurrencyWallet) {
+        throw new BadRequestError(
+          "Wallet already exists for specified currency"
+        );
+      }
+
+      if (!ALLOWED_CURRENCIES.includes(currency)) {
+        throw new BadRequestError("Currency not supported");
+      }
+
+      const wallet = new WalletModel({ user: user._id, currency });
+
+      const createdWallet = await WalletModel.create(wallet);
+
+      return createdWallet;
+    } catch (error) {
+      logEvent("error", "Error creating wallet", {
+        error,
+        userId,
+        currency,
+      });
+
+      throw error;
     }
-
-    if (!ALLOWED_CURRENCIES.includes(currency)) {
-      throw new BadRequestError("Currency not supported");
-    }
-
-    const wallet = new WalletModel({ user: user._id, currency });
-
-    const createdWallet = await WalletModel.create(wallet);
-
-    return createdWallet;
   }
 
   async createDefaultWallets(userId: string) {
-    const user = await UserModel.findById(userId);
-
-    if (!user) {
-      throw new NotFoundError("User not found");
-    }
-
-    const defaultCurrencies = ["USD", "NGN"];
-
-    const wallets = defaultCurrencies.map((currency) => {
-      return new WalletModel({ user: user._id, currency });
+    logEvent("info", "Creating default wallets", {
+      userId,
     });
 
-    const createdDefaultWallets = await WalletModel.insertMany(wallets);
+    try {
+      const user = await UserModel.findById(userId);
 
-    return createdDefaultWallets;
+      if (!user) {
+        throw new NotFoundError("User not found");
+      }
+
+      const defaultCurrencies = ["USD", "NGN"];
+
+      const wallets = defaultCurrencies.map((currency) => {
+        return new WalletModel({ user: user._id, currency });
+      });
+
+      const createdDefaultWallets = await WalletModel.insertMany(wallets);
+
+      return createdDefaultWallets;
+    } catch (error) {
+      logEvent("error", "Error creating default wallets", {
+        error,
+        userId,
+      });
+
+      throw error;
+    }
   }
 
   async getWalletsByUserId(userId: string) {
-    const wallets = await WalletModel.find({
-      user: ObjectId.createFromHexString(userId),
-    }).populate("user");
-    if (!wallets || wallets.length === 0) {
-      throw new NotFoundError("Wallets not found");
-    }
+    logEvent("info", "Getting wallets by user id", {
+      userId,
+    });
 
-    return wallets;
+    try {
+      const wallets = await WalletModel.find({
+        user: ObjectId.createFromHexString(userId),
+      }).populate("user");
+
+      if (!wallets || wallets.length === 0) {
+        throw new NotFoundError("Wallets not found");
+      }
+
+      return wallets;
+    } catch (error) {
+      logEvent("error", "Error getting wallets by user id", {
+        error,
+        userId,
+      });
+
+      throw error;
+    }
   }
 
   async getWalletByWalletId(walletId: string) {
-    const wallet = await WalletModel.findById(walletId).populate("user");
+    logEvent("info", "Getting wallet by wallet id", {
+      walletId,
+    });
 
-    if (!wallet) {
-      throw new NotFoundError("Wallet not found");
+    try {
+      const wallet = await WalletModel.findById(walletId).populate("user");
+
+      if (!wallet) {
+        throw new NotFoundError("Wallet not found");
+      }
+
+      return wallet;
+    } catch (error) {
+      logEvent("error", "Error getting wallet by wallet id", {
+        error,
+        walletId,
+      });
+
+      throw error;
     }
-
-    return wallet;
   }
 
   async fundWallet(depositFundsDto: FundWalletDto) {
@@ -130,6 +187,7 @@ export class WalletService {
     } catch (error) {
       logEvent("error", "Error funding wallet", {
         error,
+        amount: depositFundsDto.amount,
       });
 
       throw error;
@@ -184,6 +242,7 @@ export class WalletService {
     } catch (error) {
       logEvent("error", "Error crediting wallet", {
         error,
+        transactionReference,
       });
 
       throw error;
@@ -224,6 +283,7 @@ export class WalletService {
     } catch (error) {
       logEvent("error", "Error getting user deposits", {
         error,
+        userId: getUserRecordsDto.userId,
       });
 
       throw error;

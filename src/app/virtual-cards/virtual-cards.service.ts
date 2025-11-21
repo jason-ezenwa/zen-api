@@ -227,7 +227,7 @@ class VirtualCardService {
       });
 
       if (!virtualCardRequest) {
-        throw new Error("Virtual card request not found");
+        throw new NotFoundError("Virtual card request not found");
       }
 
       const cardDetails = await this.getVirtualCardDetailsFromMaplerad(
@@ -288,7 +288,12 @@ class VirtualCardService {
 
       return createdVirtualCard;
     } catch (error: any) {
-      logEvent("error", "Error handling virtual card creation", { error });
+      logEvent("error", "Error handling virtual card creation", {
+        error,
+        cardReference,
+      });
+
+      throw error;
     }
   }
 
@@ -327,10 +332,11 @@ class VirtualCardService {
 
       throw new Error("Unable to freeze virtual card on Maplerad");
     } catch (error: any) {
-      console.error(
-        "Error freezing virtual card:",
-        error.response?.data || error.message
-      );
+      logEvent("error", "Error freezing virtual card", {
+        error: error.response?.data || error.message,
+        cardId,
+      });
+
       throw error;
     }
   }
@@ -370,10 +376,11 @@ class VirtualCardService {
 
       throw new Error("Unable to unfreeze virtual card on Maplerad");
     } catch (error: any) {
-      console.error(
-        "Error unfreezing virtual card:",
-        error.response?.data || error.message
-      );
+      logEvent("error", "Error unfreezing virtual card", {
+        error: error.response?.data || error.message,
+        cardId,
+      });
+
       throw error;
     }
   }
@@ -461,10 +468,11 @@ class VirtualCardService {
 
       throw new Error("Unable to fund virtual card on Maplerad");
     } catch (error: any) {
-      console.error(
-        "Error funding virtual card:",
-        error.response?.data || error.message
-      );
+      logEvent("error", "Error funding virtual card", {
+        error: error.response?.data || error.message,
+        cardId,
+        amount,
+      });
       throw error;
     }
   }
@@ -505,7 +513,10 @@ class VirtualCardService {
         numberOfRecordsPerPage,
       };
     } catch (error) {
-      logEvent("error", "Error fetching virtual card transactions", { error });
+      logEvent("error", "Error fetching virtual card transactions", {
+        error,
+        userId: getUserRecordsDto.userId,
+      });
 
       throw error;
     }

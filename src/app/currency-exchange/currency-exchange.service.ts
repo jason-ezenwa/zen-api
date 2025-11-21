@@ -81,43 +81,53 @@ class CurrencyExchangeService {
         quoteReference,
       };
     } catch (error: any) {
-      console.error(
-        "Error generating FX quote:",
-        error.response?.data || error.message
-      );
+      logEvent("error", "Error generating FX quote", {
+        error: error.response?.data || error.message,
+        sourceCurrency,
+        targetCurrency,
+        amount,
+      });
       throw error;
     }
   }
 
   async generateFXQuote(quoteDto: GenerateFXQuoteDto) {
-    const { sourceAmount, targetAmount, exchangeRate, quoteReference } =
-      await this.generateFXQuoteFromMaplerad(
-        quoteDto.sourceCurrency,
-        quoteDto.targetCurrency,
-        quoteDto.amount
-      );
+    try {
+      const { sourceAmount, targetAmount, exchangeRate, quoteReference } =
+        await this.generateFXQuoteFromMaplerad(
+          quoteDto.sourceCurrency,
+          quoteDto.targetCurrency,
+          quoteDto.amount
+        );
 
-    const fxQuote = JSON.stringify({
-      sourceAmount,
-      sourceCurrency: quoteDto.sourceCurrency,
-      targetAmount,
-      targetCurrency: quoteDto.targetCurrency,
-      reference: quoteReference,
-      exchangeRate,
-    });
+      const fxQuote = JSON.stringify({
+        sourceAmount,
+        sourceCurrency: quoteDto.sourceCurrency,
+        targetAmount,
+        targetCurrency: quoteDto.targetCurrency,
+        reference: quoteReference,
+        exchangeRate,
+      });
 
-    const fxQuoteKey = `fx_${quoteReference}`;
-    const redis = await redisClient;
-    await redis.set(fxQuoteKey, fxQuote);
-    await redis.expire(fxQuoteKey, 180);
+      const fxQuoteKey = `fx_${quoteReference}`;
+      const redis = await redisClient;
+      await redis.set(fxQuoteKey, fxQuote);
+      await redis.expire(fxQuoteKey, 180);
 
-    return {
-      message: "FX quote generated successfully",
-      quoteReference,
-      sourceAmount,
-      targetAmount,
-      exchangeRate,
-    };
+      return {
+        message: "FX quote generated successfully",
+        quoteReference,
+        sourceAmount,
+        targetAmount,
+        exchangeRate,
+      };
+    } catch (error) {
+      logEvent("error", "Error generating FX quote", {
+        error,
+        quoteDto,
+      });
+      throw error;
+    }
   }
 
   public async exchangeCurrencyOnMaplerad(quoteReference: string) {
@@ -144,6 +154,7 @@ class CurrencyExchangeService {
     } catch (error: any) {
       logEvent("error", "Error processing currency exchange:", {
         error,
+        quoteReference,
       });
 
       throw error;
@@ -228,7 +239,14 @@ class CurrencyExchangeService {
 
       return createdFxTransaction;
     } catch (error) {
+      logEvent("error", "Error exchanging currency", {
+        error,
+        userId,
+        quoteReference,
+      });
+
       await redis.del(fxQuoteKey); // quote is no longer valid
+
       throw error;
     }
   }
@@ -275,6 +293,7 @@ class CurrencyExchangeService {
     } catch (error) {
       logEvent("error", "Error getting user fx transactions", {
         error,
+        userId: getUserRecordsDto.userId,
       });
 
       throw error;
