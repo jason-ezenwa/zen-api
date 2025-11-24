@@ -16,7 +16,7 @@ import { ExchangeCurrencyDto } from "../common/dtos/fx/exchange-currency.dto";
 @Service()
 @JsonController("/fx")
 export class CurrencyExchangeController {
-  @Post("/generate-quote")
+  @Post("/quote")
   async generateFXQuote(@Body() quoteDto: GenerateFXQuoteDto) {
     return await currencyExchangeService.generateFXQuote(quoteDto);
   }
@@ -45,7 +45,7 @@ export class CurrencyExchangeController {
     };
   }
 
-  @Get("/my-transactions")
+  @Get("/transactions")
   @Authorized()
   async getMyFXTransactions(
     @Req() req: Request,

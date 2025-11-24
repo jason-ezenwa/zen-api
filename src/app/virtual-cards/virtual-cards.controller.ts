@@ -60,7 +60,7 @@ export class VirtualCardsController {
     };
   }
 
-  @Get("/my-transactions")
+  @Get("/transactions")
   @Authorized()
   async getMyVirtualCardTransactions(
     @Req() req: Request,

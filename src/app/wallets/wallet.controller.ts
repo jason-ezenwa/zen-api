@@ -55,7 +55,7 @@ export class WalletController {
     };
   }
 
-  @Get("/my-deposits")
+  @Get("/deposits")
   @Authorized()
   async getMyDeposits(@Req() req: Request, @QueryParam("page") page?: number) {
     const userId = req.user.id;
@@ -93,7 +93,7 @@ export class WalletController {
 
   @Post("/fund")
   @Authorized()
-  async fundWalletByBody(@Body() fundWalletDto: FundWalletDto) {
+  async fundWallet(@Body() fundWalletDto: FundWalletDto) {
     const { paymentLink, depositId } = await this.walletService.fundWallet(
       fundWalletDto
     );
