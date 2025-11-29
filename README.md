@@ -145,6 +145,10 @@ npm start
 5. Open a Pull Request
 
 
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE.md](LICENSE.md) file for details.
+
 ## Contact
 
 For questions or support, contact me via email @chukwuemelie.ezenwa@gmail.com 
