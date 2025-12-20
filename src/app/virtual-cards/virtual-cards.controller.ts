@@ -83,7 +83,8 @@ export class VirtualCardsController {
         return {
           ...obj,
           _id: obj._id.toString(),
-          user: obj.user?.toString() || obj.user,
+          user: obj.user?.toString(),
+          card: obj.card?.toString(),
         };
       }),
     };
