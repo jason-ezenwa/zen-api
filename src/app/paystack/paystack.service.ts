@@ -68,10 +68,7 @@ export class PaystackService {
             amount: totalAmount * 100, // Paystack expects amount in kobo
             callback_url: `${process.env.HOME_URL}/dashboard`,
             reference: transactionReference,
-            channels:
-              process.env.NODE_ENV === "production"
-                ? ["bank_transfer"]
-                : ["bank_transfer", "card"],
+            channels: ["bank_transfer", "card"],
           },
           {
             headers: {
