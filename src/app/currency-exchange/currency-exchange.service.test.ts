@@ -4,9 +4,8 @@ import WalletModel from "../wallets/models/wallet.model";
 import UserModel from "../users/models/user.model";
 import MarginModel from "../margins/models/margin";
 import CurrencyExchangeModel from "./models/currency-exchange";
-import { CurrencyExchange } from "./models/currency-exchange";
 import { TransactionStatus } from "../../types";
-import CurrencyExchangeService from "./currency-exchange.service";
+import { CurrencyExchangeService } from "./currency-exchange.service";
 import { ObjectId } from "mongodb";
 
 // Mock the logEvent function
@@ -28,9 +27,11 @@ jest.mock("../redisClient", () => ({
 describe("CurrencyExchangeService", () => {
   let mockRedis: any;
 
+  let currencyExchangeService: CurrencyExchangeService;
+
   beforeEach(async () => {
     mockRedis = await redisClient;
-    jest.clearAllMocks();
+    currencyExchangeService = new CurrencyExchangeService();
   });
 
   afterEach(() => {
@@ -47,7 +48,7 @@ describe("CurrencyExchangeService", () => {
 
       jest.spyOn(MarginModel, "findOne").mockResolvedValueOnce(mockMargin as any);
 
-      const result = await CurrencyExchangeService.getCurrencyExchangeMarginFromDb();
+      const result = await currencyExchangeService.getCurrencyExchangeMarginFromDb();
 
       expect(result).toEqual(mockMargin);
       expect(MarginModel.findOne).toHaveBeenCalledTimes(1);
@@ -56,7 +57,7 @@ describe("CurrencyExchangeService", () => {
     it("should return null if no margin is found", async () => {
       jest.spyOn(MarginModel, "findOne").mockResolvedValueOnce(null);
 
-      const result = await CurrencyExchangeService.getCurrencyExchangeMarginFromDb();
+      const result = await currencyExchangeService.getCurrencyExchangeMarginFromDb();
 
       expect(result).toBeNull();
       expect(MarginModel.findOne).toHaveBeenCalledTimes(1);
@@ -80,10 +81,10 @@ describe("CurrencyExchangeService", () => {
 
       // Mock the generateFXQuoteFromMaplerad method
       jest
-        .spyOn(CurrencyExchangeService, "generateFXQuoteFromMaplerad")
+        .spyOn(currencyExchangeService, "generateFXQuoteFromMaplerad")
         .mockResolvedValueOnce(mockQuoteResponse);
 
-      const result = await CurrencyExchangeService.generateFXQuote(quoteDto);
+      const result = await currencyExchangeService.generateFXQuote(quoteDto);
 
       expect(result).toEqual({
         message: "FX quote generated successfully",
@@ -166,14 +167,14 @@ describe("CurrencyExchangeService", () => {
         .mockResolvedValueOnce(mockTargetWallet as any); // Target wallet
       
       jest
-        .spyOn(CurrencyExchangeService, "exchangeCurrencyOnMaplerad")
+        .spyOn(currencyExchangeService, "exchangeCurrencyOnMaplerad")
         .mockResolvedValueOnce({ status: true });
       
       jest
         .spyOn(CurrencyExchangeModel, "create")
         .mockResolvedValueOnce(mockCreatedTransaction as any);
 
-      const result = await CurrencyExchangeService.exchangeCurrency(
+      const result = await currencyExchangeService.exchangeCurrency(
         userId,
         quoteReference
       );
@@ -222,7 +223,7 @@ describe("CurrencyExchangeService", () => {
       mockRedis.get.mockResolvedValueOnce(null);
 
       await expect(
-        CurrencyExchangeService.exchangeCurrency(userId, quoteReference)
+        currencyExchangeService.exchangeCurrency(userId, quoteReference)
       ).rejects.toThrow(NotFoundError);
 
       expect(mockRedis.get).toHaveBeenCalledWith(fxQuoteKey);
@@ -241,7 +242,7 @@ describe("CurrencyExchangeService", () => {
       jest.spyOn(UserModel, "findById").mockResolvedValueOnce(null);
 
       await expect(
-        CurrencyExchangeService.exchangeCurrency(userId, quoteReference)
+        currencyExchangeService.exchangeCurrency(userId, quoteReference)
       ).rejects.toThrow(NotFoundError);
 
       expect(mockRedis.del).toHaveBeenCalledWith(fxQuoteKey);
@@ -266,7 +267,7 @@ describe("CurrencyExchangeService", () => {
       jest.spyOn(WalletModel, "findOne").mockResolvedValue(null);
 
       try {
-        await CurrencyExchangeService.exchangeCurrency(userId, quoteReference);
+        await currencyExchangeService.exchangeCurrency(userId, quoteReference);
         fail("Expected error to be thrown");
       } catch (error: any) {
         expect(error.message).toContain("User does not have a USD wallet");
@@ -302,7 +303,7 @@ describe("CurrencyExchangeService", () => {
         .mockResolvedValueOnce(null); // Target wallet not found
 
       await expect(
-        CurrencyExchangeService.exchangeCurrency(userId, quoteReference)
+        currencyExchangeService.exchangeCurrency(userId, quoteReference)
       ).rejects.toThrow(NotFoundError);
 
       expect(mockRedis.del).toHaveBeenCalledWith(fxQuoteKey);
@@ -342,7 +343,7 @@ describe("CurrencyExchangeService", () => {
         .mockResolvedValueOnce(mockTargetWallet as any);
 
       await expect(
-        CurrencyExchangeService.exchangeCurrency(userId, quoteReference)
+        currencyExchangeService.exchangeCurrency(userId, quoteReference)
       ).rejects.toThrow("Insufficient balance");
 
       expect(mockRedis.del).toHaveBeenCalledWith(fxQuoteKey);
@@ -360,7 +361,7 @@ describe("CurrencyExchangeService", () => {
       jest.spyOn(UserModel, "findById").mockRejectedValueOnce(new Error("Database error"));
 
       await expect(
-        CurrencyExchangeService.exchangeCurrency(userId, quoteReference)
+        currencyExchangeService.exchangeCurrency(userId, quoteReference)
       ).rejects.toThrow("Database error");
 
       expect(mockRedis.del).toHaveBeenCalledWith(fxQuoteKey);
@@ -410,7 +411,7 @@ describe("CurrencyExchangeService", () => {
       jest.spyOn(CurrencyExchangeModel, "find").mockResolvedValueOnce(mockTransactions as any);
       jest.spyOn(CurrencyExchangeModel, "countDocuments").mockResolvedValueOnce(totalRecords);
 
-      const result = await CurrencyExchangeService.getUserFXTransactions(getUserRecordsDto);
+      const result = await currencyExchangeService.getUserFXTransactions(getUserRecordsDto);
 
       expect(result).toEqual({
         fxTransactions: mockTransactions,
@@ -450,7 +451,7 @@ describe("CurrencyExchangeService", () => {
       jest.spyOn(CurrencyExchangeModel, "find").mockResolvedValueOnce([]);
       jest.spyOn(CurrencyExchangeModel, "countDocuments").mockResolvedValueOnce(15);
 
-      await CurrencyExchangeService.getUserFXTransactions(getUserRecordsDto);
+      await currencyExchangeService.getUserFXTransactions(getUserRecordsDto);
 
       expect(CurrencyExchangeModel.find).toHaveBeenCalledWith(
         { user: mockUser._id },
@@ -477,7 +478,7 @@ describe("CurrencyExchangeService", () => {
       jest.spyOn(CurrencyExchangeModel, "find").mockResolvedValueOnce([]);
       jest.spyOn(CurrencyExchangeModel, "countDocuments").mockResolvedValueOnce(0);
 
-      const result = await CurrencyExchangeService.getUserFXTransactions(getUserRecordsDto);
+      const result = await currencyExchangeService.getUserFXTransactions(getUserRecordsDto);
 
       expect(result.page).toBe(1);
       expect(CurrencyExchangeModel.find).toHaveBeenCalledWith(
@@ -500,7 +501,7 @@ describe("CurrencyExchangeService", () => {
       jest.spyOn(UserModel, "findById").mockResolvedValueOnce(null);
 
       await expect(
-        CurrencyExchangeService.getUserFXTransactions(getUserRecordsDto)
+        currencyExchangeService.getUserFXTransactions(getUserRecordsDto)
       ).rejects.toThrow(NotFoundError);
 
       expect(UserModel.findById).toHaveBeenCalledWith(getUserRecordsDto.userId);
@@ -516,14 +517,19 @@ describe("CurrencyExchangeService", () => {
       jest.spyOn(UserModel, "findById").mockRejectedValueOnce(error);
 
       await expect(
-        CurrencyExchangeService.getUserFXTransactions(getUserRecordsDto)
+        currencyExchangeService.getUserFXTransactions(getUserRecordsDto)
       ).rejects.toThrow(error);
 
       // The logEvent function should be called for error logging
       const { logEvent } = require("../../utils");
-      expect(logEvent).toHaveBeenCalledWith("error", "Error getting user fx transactions", {
-        error,
-      });
+      expect(logEvent).toHaveBeenCalledWith(
+        "error",
+        "Error getting user fx transactions",
+        {
+          error,
+          userId: getUserRecordsDto.userId,
+        }
+      );
     });
   });
 });

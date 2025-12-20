@@ -14,8 +14,11 @@ import {
 } from "./models/virtual-card-transaction";
 import { GetUserRecordsDto } from "../common/dtos";
 import { TransactionStatus } from "../../types";
+import { Service } from "typedi";
+import { WalletService } from "../wallets/wallet.service";
 
-class VirtualCardService {
+@Service()
+export class VirtualCardService {
   async createVirtualCard(
     userId: string,
     currency: string,
@@ -522,5 +525,3 @@ class VirtualCardService {
     }
   }
 }
-
-export default new VirtualCardService();

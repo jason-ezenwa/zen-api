@@ -9,16 +9,20 @@ import {
 } from "routing-controllers";
 import { Service } from "typedi";
 import { Request } from "express";
-import currencyExchangeService from "./currency-exchange.service";
 import { GenerateFXQuoteDto } from "../common/dtos/fx/generate-quote.dto";
 import { ExchangeCurrencyDto } from "../common/dtos/fx/exchange-currency.dto";
+import { CurrencyExchangeService } from "./currency-exchange.service";
 
 @Service()
 @JsonController("/fx")
 export class CurrencyExchangeController {
+  constructor(
+    private readonly currencyExchangeService: CurrencyExchangeService
+  ) {}
+
   @Post("/quote")
   async generateFXQuote(@Body() quoteDto: GenerateFXQuoteDto) {
-    return await currencyExchangeService.generateFXQuote(quoteDto);
+    return await this.currencyExchangeService.generateFXQuote(quoteDto);
   }
 
   @Post("/exchange-currency")
@@ -29,7 +33,7 @@ export class CurrencyExchangeController {
   ) {
     const userId = req.user.id;
 
-    const fxTransaction = await currencyExchangeService.exchangeCurrency(
+    const fxTransaction = await this.currencyExchangeService.exchangeCurrency(
       userId,
       exchangeDto.quoteReference
     );
@@ -56,7 +60,9 @@ export class CurrencyExchangeController {
       userId,
       page: page || 1,
     };
-    const result = await currencyExchangeService.getUserFXTransactions(dto);
+    const result = await this.currencyExchangeService.getUserFXTransactions(
+      dto
+    );
     return {
       ...result,
       fxTransactions: result.fxTransactions.map((transaction) => {

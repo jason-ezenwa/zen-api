@@ -4,13 +4,18 @@ import VirtualCardModel, {
 	VirtualCard,
 } from "../virtual-cards/models/virtual-card.model";
 import { UnauthorizedError } from "../errors";
-import virtualCardService from "../virtual-cards/virtual-cards.service";
-class WebhookService {
+import { VirtualCardService } from "../virtual-cards/virtual-cards.service";
+import { Service } from "typedi";
+
+@Service()
+export class WebhookService {
+  constructor(private readonly virtualCardService: VirtualCardService) {}
+
   async handleCardCreation(req: Request) {
     try {
       const cardReference = req.body.reference;
 
-      await virtualCardService.handleVirtualCardCreation(cardReference);
+      await this.virtualCardService.handleVirtualCardCreation(cardReference);
 
       return true;
     } catch (error) {
@@ -42,4 +47,3 @@ class WebhookService {
   }
 }
 
-export default new WebhookService();

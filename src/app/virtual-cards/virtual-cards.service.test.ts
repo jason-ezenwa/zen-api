@@ -2,9 +2,7 @@ import axios from "axios";
 import { NotFoundError } from "../errors";
 import UserMapleRadAccountModel from "../users/models/user-maplerad-account.model";
 import UserModel from "../users/models/user.model";
-import VirtualCardRequestModel from "./models/virtual-card-request.model";
-import VirtualCardService from "./virtual-cards.service";
-import virtualCardsService from "./virtual-cards.service";
+import { VirtualCardService } from "./virtual-cards.service";
 import VirtualCardModel from "./models/virtual-card.model";
 import WalletModel from "../wallets/models/wallet.model";
 import USDVirtualCardFeesModel from "../fees/models/usd-virtual-card-fees";
@@ -14,6 +12,12 @@ import { ObjectId } from "mongodb";
 jest.mock("axios");
 
 describe("VirtualCardService", () => {
+  let virtualCardService: VirtualCardService;
+
+  beforeEach(() => {
+    virtualCardService = new VirtualCardService();
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -56,10 +60,10 @@ describe("VirtualCardService", () => {
       };
 
       jest
-        .spyOn(VirtualCardService, "createVirtualCardOnMaplerad")
+        .spyOn(virtualCardService, "createVirtualCardOnMaplerad")
         .mockResolvedValue(cardRequest as any);
 
-      const createdCardRequest = await VirtualCardService.createVirtualCard(
+      const createdCardRequest = await virtualCardService.createVirtualCard(
         userId,
         currency,
         brand,
@@ -69,7 +73,7 @@ describe("VirtualCardService", () => {
       expect(createdCardRequest).toBeDefined();
 
       expect(
-        virtualCardsService.createVirtualCardOnMaplerad
+        virtualCardService.createVirtualCardOnMaplerad
       ).toHaveBeenCalledWith(
         userMapleRadAccount.userMapleRadAccountId,
         currency,
@@ -78,7 +82,7 @@ describe("VirtualCardService", () => {
       );
 
       expect(
-        virtualCardsService.createVirtualCardOnMaplerad
+        virtualCardService.createVirtualCardOnMaplerad
       ).toHaveBeenCalledTimes(1);
     });
 
@@ -91,7 +95,7 @@ describe("VirtualCardService", () => {
       jest.spyOn(UserModel, "findById").mockResolvedValue(null);
 
       await expect(
-        VirtualCardService.createVirtualCard(userId, currency, brand, cardPin)
+        virtualCardService.createVirtualCard(userId, currency, brand, cardPin)
       ).rejects.toThrow(NotFoundError);
     });
 
@@ -109,7 +113,7 @@ describe("VirtualCardService", () => {
       jest.spyOn(UserMapleRadAccountModel, "findOne").mockResolvedValue(null);
 
       await expect(
-        VirtualCardService.createVirtualCard(userId, currency, brand, cardPin)
+        virtualCardService.createVirtualCard(userId, currency, brand, cardPin)
       ).rejects.toThrow(NotFoundError);
     });
 
@@ -146,11 +150,11 @@ describe("VirtualCardService", () => {
       });
 
       jest
-        .spyOn(VirtualCardService, "createVirtualCardOnMaplerad")
+        .spyOn(virtualCardService, "createVirtualCardOnMaplerad")
         .mockRejectedValue(new Error());
 
       await expect(
-        VirtualCardService.createVirtualCard(userId, currency, brand, cardPin)
+        virtualCardService.createVirtualCard(userId, currency, brand, cardPin)
       ).rejects.toThrow(Error);
     });
 
@@ -187,7 +191,7 @@ describe("VirtualCardService", () => {
       });
 
       await expect(
-        VirtualCardService.createVirtualCard(userId, currency, brand, cardPin)
+        virtualCardService.createVirtualCard(userId, currency, brand, cardPin)
       ).rejects.toThrow(Error);
     });
   });
@@ -228,7 +232,7 @@ describe("VirtualCardService", () => {
       jest.spyOn(VirtualCardModel, "findOne").mockResolvedValue(card);
       jest.spyOn(WalletModel, "findOne").mockResolvedValue(userWallet);
       jest
-        .spyOn(VirtualCardService, "fundVirtualCardOnMaplerad")
+        .spyOn(virtualCardService, "fundVirtualCardOnMaplerad")
         .mockResolvedValue(true);
 
       jest.spyOn(VirtualCardModel, "findByIdAndUpdate").mockResolvedValue({});
@@ -237,7 +241,7 @@ describe("VirtualCardService", () => {
         .spyOn(VirtualCardTransactionModel, "create")
         .mockResolvedValue(transaction as any);
 
-      const status = await VirtualCardService.fundVirtualCard(
+      const status = await virtualCardService.fundVirtualCard(
         userId,
         cardId,
         amount
@@ -272,7 +276,7 @@ describe("VirtualCardService", () => {
       jest.spyOn(VirtualCardModel, "findOne").mockResolvedValue(null);
 
       await expect(
-        VirtualCardService.fundVirtualCard(userId, cardId, amount)
+        virtualCardService.fundVirtualCard(userId, cardId, amount)
       ).rejects.toThrow(NotFoundError);
     });
 
@@ -290,7 +294,7 @@ describe("VirtualCardService", () => {
       jest.spyOn(WalletModel, "findOne").mockResolvedValue(null);
 
       await expect(
-        VirtualCardService.fundVirtualCard(userId, cardId, amount)
+        virtualCardService.fundVirtualCard(userId, cardId, amount)
       ).rejects.toThrow(NotFoundError);
     });
 
@@ -314,7 +318,7 @@ describe("VirtualCardService", () => {
       jest.spyOn(WalletModel, "findOne").mockResolvedValue(userWallet);
 
       await expect(
-        VirtualCardService.fundVirtualCard(userId, cardId, amount)
+        virtualCardService.fundVirtualCard(userId, cardId, amount)
       ).rejects.toThrow(Error);
     });
   });

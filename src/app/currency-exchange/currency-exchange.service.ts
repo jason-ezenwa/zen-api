@@ -10,6 +10,7 @@ import CurrencyExchangeModel from "./models/currency-exchange";
 import { CurrencyExchange } from "./models/currency-exchange";
 import { TransactionStatus } from "../../types";
 import { GenerateFXQuoteDto } from "../common/dtos/fx/generate-quote.dto";
+import { Service } from "typedi";
 
 interface FXQuoteResponse {
   sourceAmount: number;
@@ -30,7 +31,8 @@ interface MapleradQuoteData {
   rate: string;
 }
 
-class CurrencyExchangeService {
+@Service()
+export class CurrencyExchangeService {
   public async getCurrencyExchangeMarginFromDb() {
     return MarginModel.findOne();
   }
@@ -300,5 +302,3 @@ class CurrencyExchangeService {
     }
   }
 }
-
-export default new CurrencyExchangeService();

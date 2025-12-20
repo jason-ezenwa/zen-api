@@ -7,7 +7,7 @@ import {
 } from "routing-controllers";
 import { Service } from "typedi";
 import { Request, Response } from "express";
-import webhookService from "./webhook.service";
+import { WebhookService } from "./webhook.service";
 import { WalletService } from "../wallets/wallet.service";
 import { logEvent } from "../../utils";
 import { UnauthorizedError } from "../errors";
@@ -47,7 +47,10 @@ const checkMapleradIPAddress = (requestIPAddress: string) => {
 @Service()
 @JsonController("/webhook")
 export class WebhookController {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(
+    private readonly walletService: WalletService,
+    private readonly webhookService: WebhookService
+  ) {}
 
   @Post()
   async handleWebhook(@Req() req: Request, @Res() res: Response) {
@@ -62,12 +65,12 @@ export class WebhookController {
 
     if (req.body.event === "issuing.created.successful") {
       checkMapleradIPAddress(requestIPAddress);
-      webhookService.handleCardCreation(req);
+      this.webhookService.handleCardCreation(req);
     }
 
     if (req.body.event === "issuing.created.failed") {
       checkMapleradIPAddress(requestIPAddress);
-      webhookService.handleCardCreationFailed(req);
+      this.webhookService.handleCardCreationFailed(req);
     }
 
     if (req.body.event === "charge.success") {

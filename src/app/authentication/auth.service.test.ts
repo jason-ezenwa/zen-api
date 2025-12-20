@@ -1,9 +1,18 @@
 import UserModel from "../users/models/user.model";
-import AuthService from "./auth.service";
+import { AuthService } from "./auth.service";
 import mapleradUserAccountService from "../users/services/maplerad-user-account.service";
 import { WalletService } from "../wallets/wallet.service";
+import { createMock } from "@golevelup/ts-jest";
 
 describe("AuthService", () => {
+  let authService: AuthService;
+
+  const walletService = createMock<WalletService>();
+
+  beforeEach(() => {
+    authService = new AuthService(walletService);
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -17,7 +26,7 @@ describe("AuthService", () => {
 
       jest.spyOn(UserModel, "findOne").mockResolvedValue(null);
 
-      await expect(AuthService.login(input)).rejects.toThrow(
+      await expect(authService.login(input)).rejects.toThrow(
         "Invalid credentials"
       );
     });
@@ -37,7 +46,7 @@ describe("AuthService", () => {
       jest.spyOn(UserModel, "findOne").mockResolvedValue(existingUser);
       jest.spyOn(existingUser, "comparePassword").mockResolvedValue(false);
 
-      await expect(AuthService.login(input)).rejects.toThrow(
+      await expect(authService.login(input)).rejects.toThrow(
         "Invalid credentials"
       );
     });
@@ -56,11 +65,11 @@ describe("AuthService", () => {
 
       jest.spyOn(UserModel, "findOne").mockResolvedValue(existingUser);
       jest
-        .spyOn(AuthService, "removeSensitiveData")
+        .spyOn(authService, "removeSensitiveData")
         .mockResolvedValueOnce(existingUser);
       jest.spyOn(existingUser, "comparePassword").mockResolvedValue(true);
 
-      const result = await AuthService.login(input);
+      const result = await authService.login(input);
 
       expect(result.user).toEqual(existingUser);
       expect(result.token).toBeDefined();
@@ -92,7 +101,7 @@ describe("AuthService", () => {
 
       jest.spyOn(UserModel, "findOne").mockResolvedValue(existingUser);
 
-      await expect(AuthService.register(input)).rejects.toThrow(
+      await expect(authService.register(input)).rejects.toThrow(
         "User already exists"
       );
     });
@@ -121,10 +130,8 @@ describe("AuthService", () => {
         .spyOn(mapleradUserAccountService, "createUserAccountOnMaplerad")
         .mockResolvedValue(true);
 
-      jest
-        .spyOn(WalletService.prototype, "createDefaultWallets")
-        .mockResolvedValue([]);
-      jest.spyOn(AuthService, "removeSensitiveData").mockResolvedValue({
+      jest.spyOn(walletService, "createDefaultWallets").mockResolvedValue([]);
+      jest.spyOn(authService, "removeSensitiveData").mockResolvedValue({
         ...input,
         password: undefined,
         bvn: undefined,
@@ -134,7 +141,7 @@ describe("AuthService", () => {
         .spyOn(UserModel, "create")
         .mockResolvedValue({} as any);
 
-      const result = await AuthService.register(input);
+      const result = await authService.register(input);
 
       expect(result.user).toBeDefined();
 

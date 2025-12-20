@@ -12,13 +12,15 @@ import {
 } from "routing-controllers";
 import { Service } from "typedi";
 import { Request } from "express";
-import virtualCardsService from "./virtual-cards.service";
+import { VirtualCardService } from "./virtual-cards.service";
 import { CreateVirtualCardDto } from "../common/dtos/virtual-cards/create-virtual-card.dto";
 import { FundVirtualCardDto } from "../common/dtos/virtual-cards/fund-virtual-card.dto";
 
 @Service()
 @JsonController("/virtual-cards")
 export class VirtualCardsController {
+  constructor(private readonly virtualCardService: VirtualCardService) {}
+
   @Post()
   @HttpCode(201)
   @Authorized()
@@ -27,7 +29,7 @@ export class VirtualCardsController {
     @Req() req: Request
   ) {
     const userId = req.user.id;
-    const virtualCardRequest = await virtualCardsService.createVirtualCard(
+    const virtualCardRequest = await this.virtualCardService.createVirtualCard(
       userId,
       createCardDto.currency,
       createCardDto.brand,
@@ -45,7 +47,7 @@ export class VirtualCardsController {
   @Authorized()
   async getVirtualCardsForUser(@Req() req: Request) {
     const userId = req.user.id;
-    const virtualCards = await virtualCardsService.getVirtualCardsForUser(
+    const virtualCards = await this.virtualCardService.getVirtualCardsForUser(
       userId
     );
     return {
@@ -71,7 +73,9 @@ export class VirtualCardsController {
       userId,
       page: page || 1,
     };
-    const result = await virtualCardsService.getVirtualCardTransactions(dto);
+    const result = await this.virtualCardService.getVirtualCardTransactions(
+      dto
+    );
     return {
       ...result,
       cardTransactions: result.cardTransactions.map((transaction) => {
@@ -88,7 +92,7 @@ export class VirtualCardsController {
   @Get("/:cardId")
   @Authorized()
   async getVirtualCard(@Param("cardId") cardId: string) {
-    const virtualCard = await virtualCardsService.getVirtualCard(cardId);
+    const virtualCard = await this.virtualCardService.getVirtualCard(cardId);
     const obj = virtualCard.toObject();
     return {
       virtualCard: {
@@ -102,7 +106,7 @@ export class VirtualCardsController {
   @Patch("/:cardId/freeze")
   @Authorized()
   async freezeVirtualCard(@Param("cardId") cardId: string) {
-    const virtualCard = await virtualCardsService.freezeVirtualCard(cardId);
+    const virtualCard = await this.virtualCardService.freezeVirtualCard(cardId);
     if (!virtualCard) {
       throw new Error("Unable to freeze virtual card");
     }
@@ -119,7 +123,9 @@ export class VirtualCardsController {
   @Patch("/:cardId/unfreeze")
   @Authorized()
   async unfreezeVirtualCard(@Param("cardId") cardId: string) {
-    const virtualCard = await virtualCardsService.unfreezeVirtualCard(cardId);
+    const virtualCard = await this.virtualCardService.unfreezeVirtualCard(
+      cardId
+    );
     if (!virtualCard) {
       throw new Error("Unable to unfreeze virtual card");
     }
@@ -141,7 +147,7 @@ export class VirtualCardsController {
     @Req() req: Request
   ) {
     const userId = req.user.id;
-    const success = await virtualCardsService.fundVirtualCard(
+    const success = await this.virtualCardService.fundVirtualCard(
       userId,
       cardId,
       fundCardDto.amount
